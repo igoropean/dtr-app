@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+padding:20px;
+text-align:center;
+}
+
+button{
+width:100%;
+padding:20px;
+font-size:20px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+}
+
+.shift-btn{
+background:#3498db;
+color:white;
+}
+
+.clockin{
+background:#2ecc71;
+color:white;
+}
+
+.clockout{
+background:#e74c3c;
+color:white;
+}
+
+.active{
+box-shadow:0 0 10px #000 inset;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+font-size:16px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Attendance</h2>
+
+<input id="employeeId" placeholder="Employee ID">
+
+<h3>Select Shift</h3>
+
+<button class="shift-btn" onclick="setShift('Day',this)">Day Shift</button>
+<button class="shift-btn" onclick="setShift('Night',this)">Night Shift</button>
+
+<h3>Attendance</h3>
+
+<button class="clockin" onclick="submitAttendance('Clock-In')">Clock In</button>
+<button class="clockout" onclick="submitAttendance('Clock-Out')">Clock Out</button>
+
+<br><br>
+
+<input type="file" accept="image/*" capture="user" id="photo">
+
+<script>
+
+const API_URL="https://script.google.com/macros/s/AKfycbywTBK2ybDapvyIA1APpL8tsvyjHB8MIgVz0O5mDjwWzRTaNH75aYlOYOL_qBoUATbthw/exec";
+
+let shift="";
+let lat="";
+let lng="";
+
+navigator.geolocation.getCurrentPosition(function(pos){
+
+lat=pos.coords.latitude;
+lng=pos.coords.longitude;
+
+});
+
+function setShift(value,btn){
+
+shift=value;
+
+document.querySelectorAll(".shift-btn")
+.forEach(b=>b.classList.remove("active"));
+
+btn.classList.add("active");
+
+}
+
+function submitAttendance(clockType){
+
+const emp=document.getElementById("employeeId").value;
+
+const file=document.getElementById("photo").files[0];
+
+if(!emp){
+alert("Enter Employee ID");
+return;
+}
+
+if(!shift){
+alert("Select Shift");
+return;
+}
+
+if(!file){
+alert("Take selfie first");
+return;
+}
+
+const reader=new FileReader();
+
+reader.onload=function(){
+
+const payload={
+
+employeeId:emp,
+shift:shift,
+clockType:clockType,
+site:"Main Site",
+notes:"",
+lat:lat,
+lng:lng,
+image:reader.result
+
+};
+
+fetch(API_URL,{
+method:"POST",
+body:JSON.stringify(payload)
+});
+
+alert(clockType + " saved");
+
+};
+
+reader.readAsDataURL(file);
+
+}
+
+</script>
+
+</body>
+</html>
