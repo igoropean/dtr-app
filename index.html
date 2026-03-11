@@ -10,14 +10,46 @@
 
 body{
 font-family:Arial;
+background:#f2f4f7;
+margin:0;
+}
+
+.container{
+max-width:500px;
+margin:auto;
 padding:20px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+h2{
+margin-top:0;
 text-align:center;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+font-size:16px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+textarea{
+resize:none;
+height:70px;
 }
 
 button{
 width:100%;
-padding:20px;
-font-size:20px;
+padding:18px;
+font-size:18px;
 margin-top:10px;
 border:none;
 border-radius:8px;
@@ -42,17 +74,10 @@ color:white;
 box-shadow:0 0 10px #000 inset;
 }
 
-input,textarea{
-width:100%;
-padding:12px;
-margin-top:10px;
-font-size:16px;
-}
-
 #gps{
-margin-top:10px;
 font-size:14px;
-color:#555;
+margin-bottom:10px;
+color:#666;
 }
 
 </style>
@@ -60,6 +85,8 @@ color:#555;
 </head>
 
 <body>
+<div class="container">
+<div class="card">
 
 <h2>Attendance</h2>
 
@@ -84,6 +111,9 @@ color:#555;
 <br><br>
 
 <input type="file" accept="image/*" capture="user" id="photo">
+
+</div>
+</div>
 
 <script>
 
