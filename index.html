@@ -4,6 +4,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
 
 body{
@@ -40,11 +42,17 @@ color:white;
 box-shadow:0 0 10px #000 inset;
 }
 
-input{
+input,textarea{
 width:100%;
 padding:12px;
 margin-top:10px;
 font-size:16px;
+}
+
+#gps{
+margin-top:10px;
+font-size:14px;
+color:#555;
 }
 
 </style>
@@ -55,7 +63,13 @@ font-size:16px;
 
 <h2>Attendance</h2>
 
+<div id="gps">📍 Detecting GPS...</div>
+
 <input id="employeeId" placeholder="Employee ID">
+
+<input id="site" placeholder="Site Name">
+
+<textarea id="notes" placeholder="Notes"></textarea>
 
 <h3>Select Shift</h3>
 
@@ -84,6 +98,9 @@ navigator.geolocation.getCurrentPosition(function(pos){
 lat=pos.coords.latitude;
 lng=pos.coords.longitude;
 
+document.getElementById("gps").innerHTML =
+"📍 GPS: "+lat.toFixed(6)+", "+lng.toFixed(6);
+
 });
 
 function setShift(value,btn){
@@ -97,26 +114,47 @@ btn.classList.add("active");
 
 }
 
+function clearForm(){
+
+document.getElementById("employeeId").value="";
+document.getElementById("site").value="";
+document.getElementById("notes").value="";
+document.getElementById("photo").value="";
+shift="";
+
+document.querySelectorAll(".shift-btn")
+.forEach(b=>b.classList.remove("active"));
+
+}
+
 function submitAttendance(clockType){
 
 const emp=document.getElementById("employeeId").value;
+const site=document.getElementById("site").value;
+const notes=document.getElementById("notes").value;
 
 const file=document.getElementById("photo").files[0];
 
 if(!emp){
-alert("Enter Employee ID");
+Swal.fire("Enter Employee ID");
 return;
 }
 
 if(!shift){
-alert("Select Shift");
+Swal.fire("Select Shift");
 return;
 }
 
 if(!file){
-alert("Take selfie first");
+Swal.fire("Take selfie first");
 return;
 }
+
+Swal.fire({
+title:"Saving Attendance...",
+allowOutsideClick:false,
+didOpen:()=>{Swal.showLoading();}
+});
 
 const reader=new FileReader();
 
@@ -127,8 +165,8 @@ const payload={
 employeeId:emp,
 shift:shift,
 clockType:clockType,
-site:"Main Site",
-notes:"",
+site:site,
+notes:notes,
 lat:lat,
 lng:lng,
 image:reader.result
@@ -138,9 +176,19 @@ image:reader.result
 fetch(API_URL,{
 method:"POST",
 body:JSON.stringify(payload)
+})
+.then(()=>{
+
+Swal.fire({
+icon:"success",
+title:"Attendance Saved",
+timer:1500,
+showConfirmButton:false
 });
 
-alert(clockType + " saved");
+clearForm();
+
+});
 
 };
 
