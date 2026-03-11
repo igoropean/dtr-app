@@ -226,8 +226,11 @@ Swal.fire("Take selfie first");
 return;
 }
 
+let action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
+
 Swal.fire({
-title:"Saving Attendance...",
+title: emp + " " + action + "...",
+text: "Please wait",
 allowOutsideClick:false,
 didOpen:()=>{Swal.showLoading();}
 });
@@ -293,4 +296,5 @@ reader.readAsDataURL(file);
 
 </body>
 </html>
+
 
