@@ -77,18 +77,23 @@ color:#666;
 
 .shift-group{
 margin-top:15px;
-text-align:left;
 }
 
 .shift-option{
 display:flex;
 align-items:center;
-margin-top:6px;
+margin-top:10px;
 font-size:16px;
 }
 
 .shift-option input{
-margin-right:10px;
+margin:0;
+margin-right:12px;
+width:auto;
+}
+
+.shift-option span{
+display:inline-block;
 }
 
 </style>
@@ -102,6 +107,7 @@ margin-right:10px;
 <h2>K5Tech Attendance</h2>
 
 <div id="gps">📍 Detecting GPS...</div>
+<div style="font-size:13px;color:#999;">Location required for attendance</div>
 
 <input id="employeeId" placeholder="Employee ID">
 
@@ -115,12 +121,12 @@ margin-right:10px;
 
 <label class="shift-option">
 <input type="radio" name="shift" value="Day">
-Day Shift
+<span>Day Shift</span>
 </label>
 
 <label class="shift-option">
 <input type="radio" name="shift" value="Night">
-Night Shift
+<span>Night Shift</span>
 </label>
 
 </div>
@@ -141,7 +147,6 @@ Night Shift
 
 const API_URL="https://script.google.com/macros/s/AKfycbywTBK2ybDapvyIA1APpL8tsvyjHB8MIgVz0O5mDjwWzRTaNH75aYlOYOL_qBoUATbthw/exec";
 
-let shift="";
 let lat="";
 let lng="";
 
@@ -155,31 +160,18 @@ document.getElementById("gps").innerHTML =
 
 });
 
-function setShift(value,btn){
-
-shift=value;
-
-document.querySelectorAll(".shift-btn")
-.forEach(b=>b.classList.remove("active"));
-
-btn.classList.add("active");
-
-}
-
 function clearForm(){
 
 document.getElementById("employeeId").value="";
 document.getElementById("site").value="";
 document.getElementById("notes").value="";
 document.getElementById("photo").value="";
-shift="";
 
-document.querySelectorAll(".shift-btn")
-.forEach(b=>b.classList.remove("active"));
+document.querySelectorAll('input[name="shift"]').forEach(r=>r.checked=false);
 
 }
 
-function addWatermark(imageBase64, text){
+function addWatermark(imageBase64,text){
 
 return new Promise(resolve=>{
 
@@ -196,8 +188,9 @@ canvas.height=img.height;
 ctx.drawImage(img,0,0);
 
 ctx.fillStyle="white";
-ctx.font="30px Arial";
-ctx.fillText(text,20,img.height-40);
+ctx.font="28px Arial";
+
+ctx.fillText(text,20,img.height-30);
 
 resolve(canvas.toDataURL("image/jpeg"));
 
@@ -214,16 +207,14 @@ function submitAttendance(clockType){
 const emp=document.getElementById("employeeId").value;
 const site=document.getElementById("site").value;
 const notes=document.getElementById("notes").value;
-
 const file=document.getElementById("photo").files[0];
+
+const shift=document.querySelector('input[name="shift"]:checked')?.value;
 
 if(!emp){
 Swal.fire("Enter Employee ID");
 return;
 }
-
-const shift =
-document.querySelector('input[name="shift"]:checked')?.value;
 
 if(!shift){
 Swal.fire("Please select a shift");
@@ -245,6 +236,13 @@ const reader=new FileReader();
 
 reader.onload=function(){
 
+const watermark =
+emp+" | "+
+new Date().toLocaleString()+" | "+
+site;
+
+addWatermark(reader.result,watermark).then(function(finalImage){
+
 const payload={
 
 employeeId:emp,
@@ -254,23 +252,7 @@ site:site,
 notes:notes,
 lat:lat,
 lng:lng,
-
-const watermark =
-emp + " | " +
-new Date().toLocaleString() + " | " +
-site;
-
-addWatermark(reader.result,watermark).then(finalImage=>{
-
-payload.image=finalImage;
-
-fetch(API_URL,{
-method:"POST",
-body:JSON.stringify(payload)
-})
-
-});
-
+image:finalImage
 
 };
 
@@ -278,7 +260,6 @@ fetch(API_URL,{
 method:"POST",
 body:JSON.stringify(payload)
 })
-
 .then(res=>res.json())
 .then(res=>{
 
@@ -297,6 +278,8 @@ showConfirmButton:false
 });
 
 clearForm();
+
+});
 
 });
 
