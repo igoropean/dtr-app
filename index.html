@@ -258,6 +258,8 @@ canvas.style.display="block";
 
 capturedImage = canvas.toDataURL("image/jpeg");
 
+stream.getTracks().forEach(track => track.stop());
+
 document.getElementById("retakeBtn").style.display="inline-block";
 
 };
@@ -304,7 +306,6 @@ function submitAttendance(clockType){
 const emp=document.getElementById("employeeId").value;
 const site=document.getElementById("site").value;
 const notes=document.getElementById("notes").value;
-// const file=document.getElementById("photo").files[0];
 
 const shift=document.querySelector('input[name="shift"]:checked')?.value;
 
@@ -330,12 +331,7 @@ emp+" | "+
 new Date().toLocaleString()+" | "+
 site;
 
-const finalImage=addWatermark(canvas,watermark);
-
-// if(!file){
-// Swal.fire("Take selfie first");
-// return;
-// }
+const finalImage = addWatermark(canvas, watermark);
 
 let action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
 
@@ -345,17 +341,6 @@ text: "Please wait",
 allowOutsideClick:false,
 didOpen:()=>{Swal.showLoading();}
 });
-
-const reader=new FileReader();
-
-reader.onload=function(){
-
-const watermark =
-emp+" | "+
-new Date().toLocaleString()+" | "+
-site;
-
-addWatermark(reader.result,watermark).then(function(finalImage){
 
 const payload={
 
@@ -394,12 +379,6 @@ showConfirmButton:false
 clearForm();
 
 });
-
-});
-
-};
-
-reader.readAsDataURL(file);
 
 }
 
