@@ -1,4 +1,5 @@
-const CACHE_NAME = "k5tech-dtr-v1";
+const CACHE_NAME = "k5tech-dtr-v2";
+
 const APP_FILES = [
   "./",
   "./index.html",
@@ -31,11 +32,6 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
-self.addEventListener("message", event => {
-  if (event.data && event.data.action === "skipWaiting") {
-    self.skipWaiting();
-  }
-});
   event.respondWith(
     fetch(event.request)
       .then(response => {
@@ -47,4 +43,10 @@ self.addEventListener("message", event => {
       })
       .catch(() => caches.match(event.request))
   );
+});
+
+self.addEventListener("message", event => {
+  if (event.data && event.data.action === "skipWaiting") {
+    self.skipWaiting();
+  }
 });
