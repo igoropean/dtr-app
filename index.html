@@ -467,8 +467,38 @@ clearForm();
 
 }
 
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js").then(registration => {
+
+    registration.addEventListener("updatefound", () => {
+      const newWorker = registration.installing;
+
+      newWorker.addEventListener("statechange", () => {
+        if (
+          newWorker.state === "installed" &&
+          navigator.serviceWorker.controller
+        ) {
+          Swal.fire({
+            icon: "info",
+            title: "Update Available",
+            text: "A new version of K5Tech Attendance is available.",
+            confirmButtonText: "Update Now"
+          }).then(() => {
+            newWorker.postMessage({ action: "skipWaiting" });
+          });
+        }
+      });
+    });
+
+  });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  });
+
 </script>
 
 </body>
 </html>
+
 
