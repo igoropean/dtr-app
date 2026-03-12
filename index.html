@@ -96,6 +96,50 @@ width:auto;
 display:inline-block;
 }
 
+.camera-box{
+position:relative;
+width:100%;
+margin-top:10px;
+}
+
+#camera{
+width:100%;
+border-radius:12px;
+background:black;
+}
+
+#selfieCanvas{
+display:none;
+width:100%;
+border-radius:12px;
+}
+
+.camera-controls{
+display:flex;
+justify-content:center;
+align-items:center;
+margin-top:10px;
+gap:15px;
+}
+
+.capture-btn{
+width:70px;
+height:70px;
+border-radius:50%;
+border:6px solid white;
+background:#3498db;
+box-shadow:0 0 8px rgba(0,0,0,0.4);
+}
+
+.retake-btn{
+padding:10px 20px;
+border:none;
+background:#f39c12;
+color:white;
+border-radius:8px;
+font-size:16px;
+}
+
 </style>
 
 </head>
@@ -114,6 +158,26 @@ display:inline-block;
 <input id="site" placeholder="Site Name">
 
 <textarea id="notes" placeholder="Notes"></textarea>
+
+<h3>Selfie Verification</h3>
+
+<div class="camera-box">
+
+    <video id="camera" autoplay playsinline></video>
+
+    <canvas id="selfieCanvas"></canvas>
+
+    <div class="camera-controls">
+
+        <button id="captureBtn" class="capture-btn"></button>
+
+        <button id="retakeBtn" class="retake-btn" style="display:none;">
+        Retake
+        </button>
+
+    </div>
+
+</div>
 
 <h3>Select Shift</h3>
 
@@ -138,7 +202,7 @@ display:inline-block;
 
 <br><br>
 
-<input type="file" accept="image/*" capture="user" id="photo">
+<!-- <input type="file" accept="image/*" capture="user" id="photo"> -->
 
 </div>
 </div>
@@ -160,6 +224,56 @@ document.getElementById("gps").innerHTML =
 
 });
 
+let stream;
+let capturedImage="";
+
+async function startCamera(){
+
+stream = await navigator.mediaDevices.getUserMedia({
+video:{facingMode:"user"},
+audio:false
+});
+
+document.getElementById("camera").srcObject = stream;
+
+}
+
+startCamera();
+
+// CAPTURE SELFIE
+document.getElementById("captureBtn").onclick=function(){
+
+const video=document.getElementById("camera");
+const canvas=document.getElementById("selfieCanvas");
+
+const ctx=canvas.getContext("2d");
+
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+
+ctx.drawImage(video,0,0);
+
+video.style.display="none";
+canvas.style.display="block";
+
+capturedImage = canvas.toDataURL("image/jpeg");
+
+document.getElementById("retakeBtn").style.display="inline-block";
+
+};
+
+//RETAKE BUTTON
+document.getElementById("retakeBtn").onclick=function(){
+
+document.getElementById("camera").style.display="block";
+document.getElementById("selfieCanvas").style.display="none";
+
+capturedImage="";
+
+this.style.display="none";
+
+};
+
 function clearForm(){
 
 document.getElementById("employeeId").value="";
@@ -171,34 +285,17 @@ document.querySelectorAll('input[name="shift"]').forEach(r=>r.checked=false);
 
 }
 
-function addWatermark(imageBase64,text){
+//APPLY WATERMARK TO CANVAS
+function addWatermark(canvas,text){
 
-return new Promise(resolve=>{
-
-const img=new Image();
-
-img.onload=function(){
-
-const canvas=document.createElement("canvas");
 const ctx=canvas.getContext("2d");
-
-canvas.width=img.width;
-canvas.height=img.height;
-
-ctx.drawImage(img,0,0);
 
 ctx.fillStyle="white";
 ctx.font="28px Arial";
 
-ctx.fillText(text,20,img.height-30);
+ctx.fillText(text,20,canvas.height-30);
 
-resolve(canvas.toDataURL("image/jpeg"));
-
-};
-
-img.src=imageBase64;
-
-});
+return canvas.toDataURL("image/jpeg");
 
 }
 
@@ -207,7 +304,7 @@ function submitAttendance(clockType){
 const emp=document.getElementById("employeeId").value;
 const site=document.getElementById("site").value;
 const notes=document.getElementById("notes").value;
-const file=document.getElementById("photo").files[0];
+// const file=document.getElementById("photo").files[0];
 
 const shift=document.querySelector('input[name="shift"]:checked')?.value;
 
@@ -221,10 +318,24 @@ Swal.fire("Please select a shift");
 return;
 }
 
-if(!file){
-Swal.fire("Take selfie first");
+if(!capturedImage){
+Swal.fire("Please capture selfie");
 return;
 }
+
+const canvas=document.getElementById("selfieCanvas");
+
+const watermark =
+emp+" | "+
+new Date().toLocaleString()+" | "+
+site;
+
+const finalImage=addWatermark(canvas,watermark);
+
+// if(!file){
+// Swal.fire("Take selfie first");
+// return;
+// }
 
 let action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
 
@@ -275,7 +386,7 @@ return;
 
 Swal.fire({
 icon:"success",
-title:"Attendance Saved",
+title: emp + " Attendance Saved",
 timer:1500,
 showConfirmButton:false
 });
@@ -296,5 +407,3 @@ reader.readAsDataURL(file);
 
 </body>
 </html>
-
-
