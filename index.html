@@ -188,7 +188,7 @@ background:black;
 
 <div class="camera-box">
 
-    <video id="camera" autoplay playsinline></video>
+    <video id="camera" autoplay playsinline style="display:none;"></video>
 
     <canvas id="selfieCanvas"></canvas>
 
@@ -285,62 +285,62 @@ cameraActive = false;
 // startCamera();
 
 // TAKE / RETAKE Selfie Button Logic
-document.getElementById("selfieBtn").onclick=function(){
+document.getElementById("selfieBtn").onclick = async function() {
 
-const btn=this;
+    const btn=this;
 
-const video=document.getElementById("camera");
-const canvas=document.getElementById("selfieCanvas");
-const ctx=canvas.getContext("2d");
+    const video=document.getElementById("camera");
+    const canvas=document.getElementById("selfieCanvas");
+    const ctx=canvas.getContext("2d");
 
-if(!cameraActive){
+    if(!cameraActive){
 
-startCamera();
+    await startCamera();
 
-btn.innerText="📸 Capture";
+    btn.innerText="📸 Capture";
 
-btn.classList.remove("selfie-start","selfie-retake");
-btn.classList.add("selfie-capture");
+    btn.classList.remove("selfie-start","selfie-retake");
+    btn.classList.add("selfie-capture");
 
-return;
+    return;
 
-}
+    }
 
-if(cameraActive && !capturedImage){
+    if(cameraActive && !capturedImage){
 
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
+    canvas.width=video.videoWidth;
+    canvas.height=video.videoHeight;
 
-ctx.drawImage(video,0,0);
+    ctx.drawImage(video,0,0);
 
-video.style.display="none";
-canvas.style.display="block";
+    video.style.display="none";
+    canvas.style.display="block";
 
-capturedImage = canvas.toDataURL("image/jpeg");
+    capturedImage = canvas.toDataURL("image/jpeg");
 
-stopCamera();
+    stopCamera();
 
-btn.innerText="🔄 Retake Selfie";
+    btn.innerText="🔄 Retake Selfie";
 
-btn.classList.remove("selfie-capture");
-btn.classList.add("selfie-retake");
+    btn.classList.remove("selfie-capture");
+    btn.classList.add("selfie-retake");
 
-return;
+    return;
 
-}
+    }
 
-if(capturedImage){
+    if(capturedImage){
 
-capturedImage="";
+    capturedImage="";
 
-startCamera();
+    await startCamera();
 
-btn.innerText="📸 Capture";
+    btn.innerText="📸 Capture";
 
-btn.classList.remove("selfie-retake");
-btn.classList.add("selfie-capture");
+    btn.classList.remove("selfie-retake");
+    btn.classList.add("selfie-capture");
 
-}
+    }
 
 };
 
@@ -501,6 +501,4 @@ if ("serviceWorker" in navigator) {
 
 </body>
 </html>
-
-
 
