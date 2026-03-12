@@ -169,10 +169,8 @@ font-size:16px;
 
     <div class="camera-controls">
 
-        <button id="captureBtn" class="capture-btn"></button>
-
-        <button id="retakeBtn" class="retake-btn" style="display:none;">
-        Retake
+        <button id="selfieBtn" class="capture-btn">
+        📷 Take Selfie
         </button>
 
     </div>
@@ -224,10 +222,14 @@ document.getElementById("gps").innerHTML =
 
 });
 
-let stream;
-let capturedImage="";
+//CAMERA 
+let stream = null;
+let capturedImage = "";
+let cameraActive = false;
 
 async function startCamera(){
+
+if(cameraActive) return;
 
 stream = await navigator.mediaDevices.getUserMedia({
 video:{facingMode:"user"},
@@ -236,17 +238,45 @@ audio:false
 
 document.getElementById("camera").srcObject = stream;
 
+document.getElementById("camera").style.display="block";
+document.getElementById("selfieCanvas").style.display="none";
+
+cameraActive = true;
+
 }
 
-startCamera();
+function stopCamera(){
 
-// CAPTURE SELFIE
-document.getElementById("captureBtn").onclick=function(){
+if(stream){
+
+stream.getTracks().forEach(track=>track.stop());
+
+}
+
+cameraActive = false;
+
+}
+
+// startCamera();
+
+// TAKE / RETAKE Selfie Button Logic
+document.getElementById("selfieBtn").onclick=function(){
 
 const video=document.getElementById("camera");
 const canvas=document.getElementById("selfieCanvas");
-
 const ctx=canvas.getContext("2d");
+
+if(!cameraActive){
+
+startCamera();
+
+this.innerText="📸 Capture";
+
+return;
+
+}
+
+if(cameraActive && !capturedImage){
 
 canvas.width=video.videoWidth;
 canvas.height=video.videoHeight;
@@ -258,21 +288,23 @@ canvas.style.display="block";
 
 capturedImage = canvas.toDataURL("image/jpeg");
 
-stream.getTracks().forEach(track => track.stop());
+stopCamera();
 
-document.getElementById("retakeBtn").style.display="inline-block";
+this.innerText="🔄 Retake Selfie";
 
-};
+return;
 
-//RETAKE BUTTON
-document.getElementById("retakeBtn").onclick=function(){
+}
 
-document.getElementById("camera").style.display="block";
-document.getElementById("selfieCanvas").style.display="none";
+if(capturedImage){
 
 capturedImage="";
 
-this.style.display="none";
+startCamera();
+
+this.innerText="📸 Capture";
+
+}
 
 };
 
@@ -281,9 +313,19 @@ function clearForm(){
 document.getElementById("employeeId").value="";
 document.getElementById("site").value="";
 document.getElementById("notes").value="";
-document.getElementById("photo").value="";
 
-document.querySelectorAll('input[name="shift"]').forEach(r=>r.checked=false);
+capturedImage="";
+
+document.querySelectorAll('input[name="shift"]').forEach(r=>{
+r.checked=false;
+});
+
+document.getElementById("selfieCanvas").style.display="none";
+document.getElementById("camera").style.display="none";
+
+document.getElementById("selfieBtn").innerText="📷 Take Selfie";
+
+stopCamera();
 
 }
 
