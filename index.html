@@ -1,504 +1,510 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<link rel="manifest" href="manifest.json">
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f7;
+      margin: 0;
+    }
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+    }
 
-<style>
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
 
-*{
-box-sizing:border-box;
-}
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
 
-body{
-font-family:Arial;
-background:#f2f4f7;
-margin:0;
-}
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
 
-.container{
-max-width:500px;
-margin:auto;
-padding:20px;
-}
+    textarea {
+      resize: none;
+      height: 70px;
+    }
 
-.card{
-background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
+    button {
+      width: 100%;
+      padding: 18px;
+      font-size: 18px;
+      margin-top: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
-h2{
-margin-top:0;
-text-align:center;
-}
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
 
-input, textarea{
-width:100%;
-padding:12px;
-margin-top:12px;
-font-size:16px;
-border-radius:8px;
-border:1px solid #ccc;
-}
+    .clockin {
+      background: #2ecc71;
+      color: white;
+    }
 
-textarea{
-resize:none;
-height:70px;
-}
+    .clockout {
+      background: #e74c3c;
+      color: white;
+    }
 
-button{
-width:100%;
-padding:18px;
-font-size:18px;
-margin-top:12px;
-border:none;
-border-radius:8px;
-}
+    #gps {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #666;
+    }
 
-.clockin{
-background:#2ecc71;
-color:white;
-}
+    .shift-group {
+      margin-top: 15px;
+    }
 
-.clockout{
-background:#e74c3c;
-color:white;
-}
+    .shift-option {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 16px;
+    }
 
-#gps{
-font-size:14px;
-margin-bottom:10px;
-color:#666;
-}
+    .shift-option input {
+      margin: 0;
+      margin-right: 12px;
+      width: auto;
+    }
 
-.shift-group{
-margin-top:15px;
-}
+    .shift-option span {
+      display: inline-block;
+    }
 
-.shift-option{
-display:flex;
-align-items:center;
-margin-top:10px;
-font-size:16px;
-}
+    .camera-box {
+      position: relative;
+      width: 100%;
+      margin-top: 10px;
+    }
 
-.shift-option input{
-margin:0;
-margin-right:12px;
-width:auto;
-}
+    #camera,
+    #selfieCanvas {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 10px;
+      background: black;
+    }
 
-.shift-option span{
-display:inline-block;
-}
+    #camera {
+      display: none;
+    }
 
-.camera-box{
-position:relative;
-width:100%;
-margin-top:10px;
-}
+    #selfieCanvas {
+      display: none;
+    }
 
-#camera{
-width:100%;
-border-radius:12px;
-background:black;
-}
+    .camera-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+      gap: 15px;
+    }
 
-#selfieCanvas{
-display:none;
-width:100%;
-border-radius:12px;
-}
+    .capture-btn {
+      width: 100%;
+      padding: 16px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    }
 
-.camera-controls{
-display:flex;
-justify-content:center;
-align-items:center;
-margin-top:10px;
-gap:15px;
-}
+    .selfie-start {
+      background: #3498db;
+    }
 
-.capture-btn{
-width:100%;
-padding:16px;
-margin-top:10px;
-border:none;
-border-radius:10px;
-background:#3498db;
-color:white;
-font-size:18px;
-font-weight:bold;
-box-shadow:0 3px 8px rgba(0,0,0,0.25);
-}
+    .selfie-capture {
+      background: #2ecc71;
+    }
 
-.retake-btn{
-padding:10px 20px;
-border:none;
-background:#f39c12;
-color:white;
-border-radius:8px;
-font-size:16px;
-}
-
-.selfie-start{
-background:#3498db;
-}
-
-.selfie-capture{
-background:#2ecc71;
-}
-
-.selfie-retake{
-background:#f39c12;
-}
-
-#camera, #selfieCanvas{
-width:100%;
-border-radius:12px;
-margin-top:10px;
-background:black;
-}
-
-</style>
-
+    .selfie-retake {
+      background: #f39c12;
+    }
+  </style>
 </head>
 
 <body>
-<div class="container">
-<div class="card">
+  <div class="container">
+    <div class="card">
 
-<h2>K5Tech Attendance</h2>
+      <h2>K5Tech Attendance</h2>
 
-<div id="gps">📍 Detecting GPS...</div>
-<div style="font-size:13px;color:#999;">Location required for attendance</div>
+      <div id="gps">📍 Detecting GPS...</div>
+      <div style="font-size:13px;color:#999;">Location required for attendance</div>
 
-<input id="employeeId" placeholder="Employee ID">
+      <input id="employeeId" placeholder="Employee ID">
+      <input id="site" placeholder="Site Name">
+      <textarea id="notes" placeholder="Notes"></textarea>
 
-<input id="site" placeholder="Site Name">
+      <h3>Selfie Verification</h3>
 
-<textarea id="notes" placeholder="Notes"></textarea>
+      <div class="camera-box">
+        <video id="camera" autoplay playsinline></video>
+        <canvas id="selfieCanvas"></canvas>
 
-<h3>Selfie Verification</h3>
+        <div class="camera-controls">
+          <button type="button" id="selfieBtn" class="capture-btn selfie-start">
+            📷 Take Selfie
+          </button>
+        </div>
+      </div>
 
-<div class="camera-box">
+      <h3>Select Shift</h3>
 
-    <video id="camera" autoplay playsinline style="display:none;"></video>
+      <div class="shift-group">
+        <label class="shift-option">
+          <input type="radio" name="shift" value="Day">
+          <span>Day Shift</span>
+        </label>
 
-    <canvas id="selfieCanvas"></canvas>
+        <label class="shift-option">
+          <input type="radio" name="shift" value="Night">
+          <span>Night Shift</span>
+        </label>
+      </div>
 
-    <div class="camera-controls">
+      <h3>Attendance</h3>
 
-        <button id="selfieBtn" class="capture-btn selfie-start">
-        📷 Take Selfie
-        </button>
+      <button type="button" class="clockin" id="clockInBtn" onclick="submitAttendance('Clock-In')">Clock In</button>
+      <button type="button" class="clockout" id="clockOutBtn" onclick="submitAttendance('Clock-Out')">Clock Out</button>
+
+      <br><br>
 
     </div>
+  </div>
 
-</div>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxcqruOuRnBRYLxnWHkrtVFoTfKYW0eBKz8vl2_UTB-4z-Hn2ReVVqpnPft99gPl8pM9A/exec";
 
-<h3>Select Shift</h3>
+    let lat = "";
+    let lng = "";
 
-<div class="shift-group">
+    let stream = null;
+    let capturedImage = "";
+    let cameraActive = false;
+    let isSubmitting = false;
 
-<label class="shift-option">
-<input type="radio" name="shift" value="Day">
-<span>Day Shift</span>
-</label>
+    const gpsEl = document.getElementById("gps");
+    const video = document.getElementById("camera");
+    const canvas = document.getElementById("selfieCanvas");
+    const selfieBtn = document.getElementById("selfieBtn");
+    const clockInBtn = document.getElementById("clockInBtn");
+    const clockOutBtn = document.getElementById("clockOutBtn");
 
-<label class="shift-option">
-<input type="radio" name="shift" value="Night">
-<span>Night Shift</span>
-</label>
+    // GPS
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
 
-</div>
+        gpsEl.innerHTML = "📍 GPS: " + lat.toFixed(6) + ", " + lng.toFixed(6);
+      },
+      function(err) {
+        console.error("GPS error:", err);
+        gpsEl.innerHTML = "❌ GPS unavailable";
+        Swal.fire("Location access is required for attendance. Please enable GPS/location permission.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
 
-<h3>Attendance</h3>
+    async function startCamera() {
+      if (cameraActive) return true;
 
-<button class="clockin" onclick="submitAttendance('Clock-In')">Clock In</button>
-<button class="clockout" onclick="submitAttendance('Clock-Out')">Clock Out</button>
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user"
+          },
+          audio: false
+        });
 
-<br><br>
+        video.srcObject = stream;
+        video.style.display = "block";
+        canvas.style.display = "none";
 
-<!-- <input type="file" accept="image/*" capture="user" id="photo"> -->
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => resolve();
+        });
 
-</div>
-</div>
+        await video.play();
 
-<script>
+        // Small delay so slower phones have time to render first good frame
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-const API_URL="https://script.google.com/macros/s/AKfycbxcqruOuRnBRYLxnWHkrtVFoTfKYW0eBKz8vl2_UTB-4z-Hn2ReVVqpnPft99gPl8pM9A/exec";
+        cameraActive = true;
+        return true;
 
-let lat="";
-let lng="";
-
-navigator.geolocation.getCurrentPosition(function(pos){
-
-lat=pos.coords.latitude;
-lng=pos.coords.longitude;
-
-document.getElementById("gps").innerHTML =
-"📍 GPS: "+lat.toFixed(6)+", "+lng.toFixed(6);
-
-});
-
-//CAMERA 
-let stream = null;
-let capturedImage = "";
-let cameraActive = false;
-
-async function startCamera(){
-
-if(cameraActive) return;
-
-stream = await navigator.mediaDevices.getUserMedia({
-video:{facingMode:"user"},
-audio:false
-});
-
-document.getElementById("camera").srcObject = stream;
-
-document.getElementById("camera").style.display="block";
-document.getElementById("selfieCanvas").style.display="none";
-
-cameraActive = true;
-
-}
-
-function stopCamera(){
-
-if(stream){
-
-stream.getTracks().forEach(track=>track.stop());
-
-}
-
-cameraActive = false;
-
-}
-
-// startCamera();
-
-// TAKE / RETAKE Selfie Button Logic
-document.getElementById("selfieBtn").onclick = async function() {
-
-    const btn=this;
-
-    const video=document.getElementById("camera");
-    const canvas=document.getElementById("selfieCanvas");
-    const ctx=canvas.getContext("2d");
-
-    if(!cameraActive){
-
-    await startCamera();
-
-    btn.innerText="📸 Capture";
-
-    btn.classList.remove("selfie-start","selfie-retake");
-    btn.classList.add("selfie-capture");
-
-    return;
-
+      } catch (err) {
+        console.error("Camera error:", err);
+        Swal.fire("Unable to access camera. Please allow camera permission and try again.");
+        return false;
+      }
     }
 
-    if(cameraActive && !capturedImage){
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
 
-    canvas.width=video.videoWidth;
-    canvas.height=video.videoHeight;
-
-    ctx.drawImage(video,0,0);
-
-    video.style.display="none";
-    canvas.style.display="block";
-
-    capturedImage = canvas.toDataURL("image/jpeg");
-
-    stopCamera();
-
-    btn.innerText="🔄 Retake Selfie";
-
-    btn.classList.remove("selfie-capture");
-    btn.classList.add("selfie-retake");
-
-    return;
-
+      video.srcObject = null;
+      cameraActive = false;
     }
 
-    if(capturedImage){
+    selfieBtn.onclick = async function () {
+      const ctx = canvas.getContext("2d");
 
-    capturedImage="";
+      if (!cameraActive) {
+        const started = await startCamera();
+        if (!started) return;
 
-    await startCamera();
+        selfieBtn.innerText = "📸 Capture";
+        selfieBtn.classList.remove("selfie-start", "selfie-retake");
+        selfieBtn.classList.add("selfie-capture");
+        return;
+      }
 
-    btn.innerText="📸 Capture";
-
-    btn.classList.remove("selfie-retake");
-    btn.classList.add("selfie-capture");
-
-    }
-
-};
-
-function clearForm(){
-
-document.getElementById("employeeId").value="";
-document.getElementById("site").value="";
-document.getElementById("notes").value="";
-
-capturedImage="";
-
-document.querySelectorAll('input[name="shift"]').forEach(r=>{
-r.checked=false;
-});
-
-const btn=document.getElementById("selfieBtn");
-
-btn.innerText="📷 Take Selfie";
-
-btn.classList.remove("selfie-capture","selfie-retake");
-btn.classList.add("selfie-start");
-
-document.getElementById("selfieCanvas").style.display="none";
-document.getElementById("camera").style.display="none";
-
-document.getElementById("selfieBtn").innerText="📷 Take Selfie";
-
-stopCamera();
-
-}
-
-//APPLY WATERMARK TO CANVAS
-function addWatermark(canvas,text){
-
-const ctx=canvas.getContext("2d");
-
-ctx.fillStyle="white";
-ctx.font="28px Arial";
-
-ctx.fillText(text,20,canvas.height-30);
-
-return canvas.toDataURL("image/jpeg");
-
-}
-
-function submitAttendance(clockType){
-
-const emp=document.getElementById("employeeId").value;
-const site=document.getElementById("site").value;
-const notes=document.getElementById("notes").value;
-
-const shift=document.querySelector('input[name="shift"]:checked')?.value;
-
-if(!emp){
-Swal.fire("Enter Employee ID");
-return;
-}
-
-if(!shift){
-Swal.fire("Please select a shift");
-return;
-}
-
-if(!capturedImage){
-Swal.fire("Please capture selfie");
-return;
-}
-
-const canvas=document.getElementById("selfieCanvas");
-
-const watermark =
-emp+" | "+
-new Date().toLocaleString()+" | "+
-site;
-
-const finalImage = addWatermark(canvas, watermark);
-
-let action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
-
-Swal.fire({
-title: emp + " " + action + "...",
-text: "Please wait",
-allowOutsideClick:false,
-didOpen:()=>{Swal.showLoading();}
-});
-
-const payload={
-
-employeeId:emp,
-shift:shift,
-clockType:clockType,
-site:site,
-notes:notes,
-lat:lat,
-lng:lng,
-image:finalImage
-
-};
-
-fetch(API_URL,{
-method:"POST",
-body:JSON.stringify(payload)
-})
-.then(res=>res.json())
-.then(res=>{
-
-if(res.status==="error"){
-
-Swal.fire(res.message);
-return;
-
-}
-
-Swal.fire({
-icon:"success",
-title: emp + " Attendance Saved",
-timer:1500,
-showConfirmButton:false
-});
-
-clearForm();
-
-});
-
-}
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./service-worker.js").then(registration => {
-
-    registration.addEventListener("updatefound", () => {
-      const newWorker = registration.installing;
-
-      newWorker.addEventListener("statechange", () => {
+      if (cameraActive && !capturedImage) {
         if (
-          newWorker.state === "installed" &&
-          navigator.serviceWorker.controller
+          !video.srcObject ||
+          video.readyState < 2 ||
+          !video.videoWidth ||
+          !video.videoHeight
         ) {
-          Swal.fire({
-            icon: "info",
-            title: "Update Available",
-            text: "A new version of K5Tech Attendance is available.",
-            confirmButtonText: "Update Now"
-          }).then(() => {
-            newWorker.postMessage({ action: "skipWaiting" });
-          });
+          Swal.fire("Camera is still loading. Please wait a moment and try again.");
+          return;
         }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        video.style.display = "none";
+        canvas.style.display = "block";
+
+        capturedImage = canvas.toDataURL("image/jpeg", 0.9);
+
+        stopCamera();
+
+        selfieBtn.innerText = "🔄 Retake Selfie";
+        selfieBtn.classList.remove("selfie-capture");
+        selfieBtn.classList.add("selfie-retake");
+        return;
+      }
+
+      if (capturedImage) {
+        capturedImage = "";
+        canvas.style.display = "none";
+
+        const started = await startCamera();
+        if (!started) return;
+
+        selfieBtn.innerText = "📸 Capture";
+        selfieBtn.classList.remove("selfie-retake");
+        selfieBtn.classList.add("selfie-capture");
+      }
+    };
+
+    function clearForm() {
+      document.getElementById("employeeId").value = "";
+      document.getElementById("site").value = "";
+      document.getElementById("notes").value = "";
+
+      capturedImage = "";
+
+      document.querySelectorAll('input[name="shift"]').forEach(r => {
+        r.checked = false;
       });
-    });
 
-  });
+      selfieBtn.innerText = "📷 Take Selfie";
+      selfieBtn.classList.remove("selfie-capture", "selfie-retake");
+      selfieBtn.classList.add("selfie-start");
 
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    window.location.reload();
-  });
-}
+      canvas.style.display = "none";
+      video.style.display = "none";
 
-</script>
+      stopCamera();
+    }
 
+    function setSubmittingState(submitting) {
+      isSubmitting = submitting;
+      clockInBtn.disabled = submitting;
+      clockOutBtn.disabled = submitting;
+      selfieBtn.disabled = submitting;
+    }
+
+    function addWatermark(canvas, text) {
+      const ctx = canvas.getContext("2d");
+
+      ctx.font = "24px Arial";
+
+      const paddingX = 10;
+      const rectHeight = 40;
+      const rectY = canvas.height - 50;
+
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(10, rectY, canvas.width - 20, rectHeight);
+
+      ctx.fillStyle = "white";
+      ctx.fillText(text, 20, canvas.height - 22);
+
+      return canvas.toDataURL("image/jpeg", 0.9);
+    }
+
+    function submitAttendance(clockType) {
+      if (isSubmitting) return;
+      setSubmittingState(true);
+
+      const emp = document.getElementById("employeeId").value.trim();
+      const site = document.getElementById("site").value.trim();
+      const notes = document.getElementById("notes").value.trim();
+      const shift = document.querySelector('input[name="shift"]:checked')?.value;
+
+      if (!emp) {
+        setSubmittingState(false);
+        Swal.fire("Enter Employee ID");
+        return;
+      }
+
+      if (!shift) {
+        setSubmittingState(false);
+        Swal.fire("Please select a shift");
+        return;
+      }
+
+    //   if (lat === "" || lng === "") {
+    //     setSubmittingState(false);
+    //     Swal.fire("Location not detected yet. Please allow GPS/location access and wait a moment.");
+    //     return;
+    //   }
+
+      if (!capturedImage) {
+        setSubmittingState(false);
+        Swal.fire("Please capture selfie");
+        return;
+      }
+
+      const watermark =
+        emp + " | " +
+        new Date().toLocaleString() + " | " +
+        site;
+
+      const finalImage = addWatermark(canvas, watermark);
+
+      const action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
+
+      Swal.fire({
+        title: emp + " " + action + "...",
+        text: "Please wait",
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      const payload = {
+        employeeId: emp,
+        shift: shift,
+        clockType: clockType,
+        site: site,
+        notes: notes,
+        lat: lat,
+        lng: lng,
+        image: finalImage
+      };
+
+      fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        setSubmittingState(false);
+
+        if (res.status === "error") {
+          Swal.fire(res.message);
+          return;
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: emp + " Attendance Saved",
+          timer: 1500,
+          showConfirmButton: false
+        });
+
+        clearForm();
+      })
+      .catch(err => {
+        setSubmittingState(false);
+        console.error("Submit error:", err);
+        Swal.fire("Failed to save attendance. Please check your internet connection and try again.");
+      });
+    }
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js").then(registration => {
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+
+          newWorker.addEventListener("statechange", () => {
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              Swal.fire({
+                icon: "info",
+                title: "Update Available",
+                text: "A new version of K5Tech Attendance is available.",
+                confirmButtonText: "Update Now"
+              }).then(() => {
+                newWorker.postMessage({ action: "skipWaiting" });
+              });
+            }
+          });
+        });
+      });
+
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        window.location.reload();
+      });
+    }
+  </script>
 </body>
 </html>
-
