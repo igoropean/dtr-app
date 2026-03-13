@@ -1,11 +1,11 @@
-const CACHE_NAME = "k5tech-dtr-v2.1";
+const CACHE_NAME = "k5tech-dtr-v2.2";
 
 const APP_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./k5tech-icon-192.png",
-  "./k5tech-icon-512.png"
+  "./K5tech_Icon_192.png",
+  "./K5tech_Icon_512.png"
 ];
 
 self.addEventListener("install", event => {
