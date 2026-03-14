@@ -4,8 +4,8 @@ const APP_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./K5tech_Icon_192.png",
-  "./K5tech_Icon_512.png"
+  "./K5Tech_Icon_192.png",
+  "./K5Tech_Icon_512.png"
 ];
 
 self.addEventListener("install", event => {
