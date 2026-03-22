@@ -1,4 +1,4 @@
-const CACHE_NAME = "k5tech-dtr-v6";
+const CACHE_NAME = "k5tech-dtr-v7";
 
 const APP_FILES = [
   "./",
