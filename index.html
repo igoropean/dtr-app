@@ -207,7 +207,7 @@
   </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbw_fbGqCi4_Z0EF3WC8PaF-DNpf6AOimWOOC04cKyfaOeG4Og2QcaSMBQHKjEkRBkO9/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbx5eEMfOFawDBzHNLS_vseenYbzynm8RTmbwMnnaYDCPIKANXjhuRbjinn9ZWkE0Tr3/exec";
 
   let lat = "";
   let lng = "";
@@ -352,8 +352,35 @@
     return "GPS unavailable";
   }
 
-  function buildWatermarkLines(emp, site) {
-    const line1 = `${emp} | ${new Date().toLocaleString()} | ${site || "-"}`;
+  function pad2(num) {
+    return String(num).padStart(2, "0");
+  }
+
+  function getClientTimestampText() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = pad2(now.getMonth() + 1);
+    const dd = pad2(now.getDate());
+    const hh = pad2(now.getHours());
+    const mi = pad2(now.getMinutes());
+    const ss = pad2(now.getSeconds());
+
+    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+  }
+
+  function getClientTimestampFile() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = pad2(now.getMonth() + 1);
+    const dd = pad2(now.getDate());
+    const hh = pad2(now.getHours());
+    const mi = pad2(now.getMinutes());
+
+    return `${yyyy}-${mm}-${dd}_${hh}-${mi}`;
+  }
+
+  function buildWatermarkLines(emp, site, timestampText) {
+    const line1 = `${emp} | ${timestampText} | ${site || "-"}`;
     const line2 = getLocationText();
     return [line1, line2];
   }
@@ -545,9 +572,13 @@
     const notes = document.getElementById("notes").value.trim();
     const shift = document.querySelector('input[name="shift"]:checked')?.value;
 
+    const clientTimestampText = getClientTimestampText();
+    const clientTimestampFile = getClientTimestampFile();
+
     return {
       recordId: createRecordId(),
-      clientTimestamp: new Date().toISOString(),
+      clientTimestampText: clientTimestampText,
+      clientTimestampFile: clientTimestampFile,
       employeeId: emp,
       shift: shift,
       clockType: clockType,
@@ -556,7 +587,7 @@
       lat: lat,
       lng: lng,
       address: resolvedAddress || "",
-      image: addWatermark(canvas, buildWatermarkLines(emp, site))
+      image: addWatermark(canvas, buildWatermarkLines(emp, site, clientTimestampText))
     };
   }
 
