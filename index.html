@@ -165,7 +165,7 @@
       <div id="gps">📍 Detecting GPS...</div>
       <div style="font-size:13px;color:#999;">Location required for attendance</div>
 
-      <input id="employeeId" placeholder="Your Nickname">
+      <input id="employeeId" placeholder="Employee ID">
       <input id="site" placeholder="Site Name">
       <textarea id="notes" placeholder="Notes"></textarea>
 
@@ -206,305 +206,519 @@
     </div>
   </div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzzHuHw8pOmfKZbhhblMO9-_nmONVdoBU9JO1keq6XTJUjWyrkVvuEAN6bLs9TAnZ6i/exec";
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycby9Bws9yjtc0k9cJYKFuQ3r3nLOGma85LfzfByZ-YcZmMT2HpXgbm-wAbPSGPHcPxk6/exec";
 
-    let lat = "";
-    let lng = "";
+  let lat = "";
+  let lng = "";
 
-    let stream = null;
-    let capturedImage = "";
-    let cameraActive = false;
-    let isSubmitting = false;
+  let stream = null;
+  let capturedImage = "";
+  let cameraActive = false;
+  let isSubmitting = false;
 
-    const gpsEl = document.getElementById("gps");
-    const video = document.getElementById("camera");
-    const canvas = document.getElementById("selfieCanvas");
-    const selfieBtn = document.getElementById("selfieBtn");
-    const clockInBtn = document.getElementById("clockInBtn");
-    const clockOutBtn = document.getElementById("clockOutBtn");
+  const DB_NAME = "k5tech-attendance-db";
+  const DB_VERSION = 1;
+  const STORE_NAME = "pendingAttendance";
 
-    // GPS
-    navigator.geolocation.getCurrentPosition(
-      function(pos) {
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
+  const gpsEl = document.getElementById("gps");
+  const video = document.getElementById("camera");
+  const canvas = document.getElementById("selfieCanvas");
+  const selfieBtn = document.getElementById("selfieBtn");
+  const clockInBtn = document.getElementById("clockInBtn");
+  const clockOutBtn = document.getElementById("clockOutBtn");
 
-        gpsEl.innerHTML = "📍 GPS: " + lat.toFixed(6) + ", " + lng.toFixed(6);
-      },
-      function(err) {
-        console.error("GPS error:", err);
-        gpsEl.innerHTML = "❌ GPS unavailable";
-        Swal.fire("Location access is required for attendance. Please enable GPS/location permission.");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
+  // Add a small sync status line under GPS at runtime
+  const syncEl = document.createElement("div");
+  syncEl.id = "syncStatus";
+  syncEl.style.fontSize = "13px";
+  syncEl.style.color = "#666";
+  syncEl.style.marginBottom = "10px";
+  syncEl.innerText = navigator.onLine ? "🟢 Online" : "🟠 Offline";
+  gpsEl.insertAdjacentElement("afterend", syncEl);
 
-    async function startCamera() {
-      if (cameraActive) return true;
+  function setSyncStatus(text, color) {
+    syncEl.innerText = text;
+    syncEl.style.color = color || "#666";
+  }
 
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "user"
-          },
-          audio: false
-        });
+  function openDb() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-        video.srcObject = stream;
-        video.style.display = "block";
-        canvas.style.display = "none";
-
-        await new Promise((resolve) => {
-          video.onloadedmetadata = () => resolve();
-        });
-
-        await video.play();
-
-        // Small delay so slower phones have time to render first good frame
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        cameraActive = true;
-        return true;
-
-      } catch (err) {
-        console.error("Camera error:", err);
-        Swal.fire("Unable to access camera. Please allow camera permission and try again.");
-        return false;
-      }
-    }
-
-    function stopCamera() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
-
-      video.srcObject = null;
-      cameraActive = false;
-    }
-
-    selfieBtn.onclick = async function () {
-      const ctx = canvas.getContext("2d");
-
-      if (!cameraActive) {
-        const started = await startCamera();
-        if (!started) return;
-
-        selfieBtn.innerText = "📸 Capture";
-        selfieBtn.classList.remove("selfie-start", "selfie-retake");
-        selfieBtn.classList.add("selfie-capture");
-        return;
-      }
-
-      if (cameraActive && !capturedImage) {
-        if (
-          !video.srcObject ||
-          video.readyState < 2 ||
-          !video.videoWidth ||
-          !video.videoHeight
-        ) {
-          Swal.fire("Camera is still loading. Please wait a moment and try again.");
-          return;
+      request.onupgradeneeded = function(event) {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: "recordId" });
         }
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        video.style.display = "none";
-        canvas.style.display = "block";
-
-        capturedImage = canvas.toDataURL("image/jpeg", 0.9);
-
-        stopCamera();
-
-        selfieBtn.innerText = "🔄 Retake Selfie";
-        selfieBtn.classList.remove("selfie-capture");
-        selfieBtn.classList.add("selfie-retake");
-        return;
-      }
-
-      if (capturedImage) {
-        capturedImage = "";
-        canvas.style.display = "none";
-
-        const started = await startCamera();
-        if (!started) return;
-
-        selfieBtn.innerText = "📸 Capture";
-        selfieBtn.classList.remove("selfie-retake");
-        selfieBtn.classList.add("selfie-capture");
-      }
-    };
-
-    function clearForm() {
-      document.getElementById("employeeId").value = "";
-      document.getElementById("site").value = "";
-      document.getElementById("notes").value = "";
-
-      capturedImage = "";
-
-      document.querySelectorAll('input[name="shift"]').forEach(r => {
-        r.checked = false;
-      });
-
-      selfieBtn.innerText = "📷 Take Selfie";
-      selfieBtn.classList.remove("selfie-capture", "selfie-retake");
-      selfieBtn.classList.add("selfie-start");
-
-      canvas.style.display = "none";
-      video.style.display = "none";
-
-      stopCamera();
-    }
-
-    function setSubmittingState(submitting) {
-      isSubmitting = submitting;
-      clockInBtn.disabled = submitting;
-      clockOutBtn.disabled = submitting;
-      selfieBtn.disabled = submitting;
-    }
-
-    function addWatermark(canvas, text) {
-      const ctx = canvas.getContext("2d");
-
-      ctx.font = "24px Arial";
-
-      const paddingX = 10;
-      const rectHeight = 40;
-      const rectY = canvas.height - 50;
-
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(10, rectY, canvas.width - 20, rectHeight);
-
-      ctx.fillStyle = "white";
-      ctx.fillText(text, 20, canvas.height - 22);
-
-      return canvas.toDataURL("image/jpeg", 0.9);
-    }
-
-    function submitAttendance(clockType) {
-      if (isSubmitting) return;
-      setSubmittingState(true);
-
-      const emp = document.getElementById("employeeId").value.trim();
-      const site = document.getElementById("site").value.trim();
-      const notes = document.getElementById("notes").value.trim();
-      const shift = document.querySelector('input[name="shift"]:checked')?.value;
-
-      if (!emp) {
-        setSubmittingState(false);
-        Swal.fire("Enter Employee ID");
-        return;
-      }
-
-      if (!shift) {
-        setSubmittingState(false);
-        Swal.fire("Please select a shift");
-        return;
-      }
-
-    //   if (lat === "" || lng === "") {
-    //     setSubmittingState(false);
-    //     Swal.fire("Location not detected yet. Please allow GPS/location access and wait a moment.");
-    //     return;
-    //   }
-
-      if (!capturedImage) {
-        setSubmittingState(false);
-        Swal.fire("Please capture selfie");
-        return;
-      }
-
-      const watermark =
-        emp + " | " +
-        new Date().toLocaleString() + " | " +
-        site;
-
-      const finalImage = addWatermark(canvas, watermark);
-
-      const action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
-
-      Swal.fire({
-        title: emp + " " + action + "...",
-        text: "Please wait",
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-      });
-
-      const payload = {
-        employeeId: emp,
-        shift: shift,
-        clockType: clockType,
-        site: site,
-        notes: notes,
-        lat: lat,
-        lng: lng,
-        image: finalImage
       };
 
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(res => {
-        setSubmittingState(false);
+      request.onsuccess = function() {
+        resolve(request.result);
+      };
 
-        if (res.status === "error") {
-          Swal.fire(res.message);
-          return;
+      request.onerror = function() {
+        reject(request.error);
+      };
+    });
+  }
+
+  async function savePendingSubmission(payload) {
+    const db = await openDb();
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.put(payload);
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async function getPendingSubmissions() {
+    const db = await openDb();
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const items = request.result || [];
+        items.sort((a, b) => new Date(a.clientTimestamp) - new Date(b.clientTimestamp));
+        resolve(items);
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function deletePendingSubmission(recordId) {
+    const db = await openDb();
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(recordId);
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async function getPendingCount() {
+    const items = await getPendingSubmissions();
+    return items.length;
+  }
+
+  async function refreshPendingStatus() {
+    const count = await getPendingCount();
+
+    if (!navigator.onLine) {
+      setSyncStatus(`🟠 Offline${count ? " • Pending sync: " + count : ""}`, "#b26a00");
+      return;
+    }
+
+    if (count > 0) {
+      setSyncStatus(`🟡 Online • Pending sync: ${count}`, "#9a7b00");
+    } else {
+      setSyncStatus("🟢 Online • All synced", "#2e7d32");
+    }
+  }
+
+  function createRecordId() {
+    return "att_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+  }
+
+  function formatCoord(value) {
+    return value === "" || value === null || value === undefined
+      ? ""
+      : Number(value).toFixed(6);
+  }
+
+  function getLocationText() {
+    if (lat !== "" && lng !== "") {
+      return `GPS: ${formatCoord(lat)}, ${formatCoord(lng)}`;
+    }
+    return "GPS unavailable";
+  }
+
+  function buildWatermarkLines(emp, site) {
+    const line1 = `${emp} | ${new Date().toLocaleString()} | ${site || "-"}`;
+    const line2 = getLocationText();
+    return [line1, line2];
+  }
+
+  // GPS
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+      gpsEl.innerHTML = "📍 GPS: " + lat.toFixed(6) + ", " + lng.toFixed(6);
+      refreshPendingStatus();
+    },
+    function(err) {
+      console.error("GPS error:", err);
+      gpsEl.innerHTML = "❌ GPS unavailable";
+      refreshPendingStatus();
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+
+  async function startCamera() {
+    if (cameraActive) return true;
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false
+      });
+
+      video.srcObject = stream;
+      video.style.display = "block";
+      canvas.style.display = "none";
+
+      await new Promise((resolve) => {
+        video.onloadedmetadata = () => resolve();
+      });
+
+      await video.play();
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      cameraActive = true;
+      return true;
+
+    } catch (err) {
+      console.error("Camera error:", err);
+      Swal.fire("Unable to access camera. Please allow camera permission and try again.");
+      return false;
+    }
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+
+    video.srcObject = null;
+    cameraActive = false;
+  }
+
+  selfieBtn.onclick = async function () {
+    const ctx = canvas.getContext("2d");
+
+    if (!cameraActive) {
+      const started = await startCamera();
+      if (!started) return;
+
+      selfieBtn.innerText = "📸 Capture";
+      selfieBtn.classList.remove("selfie-start", "selfie-retake");
+      selfieBtn.classList.add("selfie-capture");
+      return;
+    }
+
+    if (cameraActive && !capturedImage) {
+      if (
+        !video.srcObject ||
+        video.readyState < 2 ||
+        !video.videoWidth ||
+        !video.videoHeight
+      ) {
+        Swal.fire("Camera is still loading. Please wait a moment and try again.");
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      video.style.display = "none";
+      canvas.style.display = "block";
+
+      capturedImage = canvas.toDataURL("image/jpeg", 0.9);
+
+      stopCamera();
+
+      selfieBtn.innerText = "🔄 Retake Selfie";
+      selfieBtn.classList.remove("selfie-capture");
+      selfieBtn.classList.add("selfie-retake");
+      return;
+    }
+
+    if (capturedImage) {
+      capturedImage = "";
+      canvas.style.display = "none";
+
+      const started = await startCamera();
+      if (!started) return;
+
+      selfieBtn.innerText = "📸 Capture";
+      selfieBtn.classList.remove("selfie-retake");
+      selfieBtn.classList.add("selfie-capture");
+    }
+  };
+
+  function clearForm() {
+    document.getElementById("employeeId").value = "";
+    document.getElementById("site").value = "";
+    document.getElementById("notes").value = "";
+
+    capturedImage = "";
+
+    document.querySelectorAll('input[name="shift"]').forEach(r => {
+      r.checked = false;
+    });
+
+    selfieBtn.innerText = "📷 Take Selfie";
+    selfieBtn.classList.remove("selfie-capture", "selfie-retake");
+    selfieBtn.classList.add("selfie-start");
+
+    canvas.style.display = "none";
+    video.style.display = "none";
+
+    stopCamera();
+  }
+
+  function setSubmittingState(submitting) {
+    isSubmitting = submitting;
+    clockInBtn.disabled = submitting;
+    clockOutBtn.disabled = submitting;
+    selfieBtn.disabled = submitting;
+  }
+
+  function addWatermark(canvas, lines) {
+    const ctx = canvas.getContext("2d");
+    const boxHeight = 80;
+    const boxY = canvas.height - boxHeight - 10;
+
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(10, boxY, canvas.width - 20, boxHeight);
+
+    ctx.fillStyle = "white";
+    ctx.font = "22px Arial";
+    ctx.fillText(lines[0], 20, boxY + 28);
+
+    ctx.font = "18px Arial";
+    ctx.fillText(lines[1], 20, boxY + 58);
+
+    return canvas.toDataURL("image/jpeg", 0.9);
+  }
+
+  function buildPayload(clockType) {
+    const emp = document.getElementById("employeeId").value.trim();
+    const site = document.getElementById("site").value.trim();
+    const notes = document.getElementById("notes").value.trim();
+    const shift = document.querySelector('input[name="shift"]:checked')?.value;
+
+    return {
+      recordId: createRecordId(),
+      clientTimestamp: new Date().toISOString(),
+      employeeId: emp,
+      shift: shift,
+      clockType: clockType,
+      site: site,
+      notes: notes,
+      lat: lat,
+      lng: lng,
+      address: "", // server will resolve and save static address
+      image: addWatermark(canvas, buildWatermarkLines(emp, site))
+    };
+  }
+
+  async function sendPayload(payload) {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    return response.json();
+  }
+
+  async function syncPendingAttendance(showSuccessToast = false) {
+    if (!navigator.onLine) {
+      await refreshPendingStatus();
+      return;
+    }
+
+    const pending = await getPendingSubmissions();
+
+    if (!pending.length) {
+      await refreshPendingStatus();
+      return;
+    }
+
+    setSyncStatus(`🔄 Syncing ${pending.length} pending entr${pending.length === 1 ? "y" : "ies"}...`, "#1565c0");
+
+    for (const item of pending) {
+      try {
+        const res = await sendPayload(item);
+
+        if (res.status === "success") {
+          await deletePendingSubmission(item.recordId);
+          continue;
         }
 
+        // Business-rule failures stay pending for manual review
+        console.error("Pending sync blocked:", res.message);
+        break;
+
+      } catch (err) {
+        console.error("Pending sync failed:", err);
+        break;
+      }
+    }
+
+    await refreshPendingStatus();
+
+    if (showSuccessToast) {
+      const count = await getPendingCount();
+      if (count === 0) {
         Swal.fire({
           icon: "success",
-          title: emp + " Attendance Saved",
-          timer: 1500,
+          title: "Pending attendance synced",
+          timer: 1200,
           showConfirmButton: false
         });
+      }
+    }
+  }
 
-        clearForm();
-      })
-      .catch(err => {
-        setSubmittingState(false);
-        console.error("Submit error:", err);
-        Swal.fire("Failed to save attendance. Please check your internet connection and try again.");
-      });
+  async function submitAttendance(clockType) {
+    if (isSubmitting) return;
+    setSubmittingState(true);
+
+    const emp = document.getElementById("employeeId").value.trim();
+    const shift = document.querySelector('input[name="shift"]:checked')?.value;
+
+    if (!emp) {
+      setSubmittingState(false);
+      Swal.fire("Enter Employee ID");
+      return;
     }
 
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js").then(registration => {
-        registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing;
+    if (!shift) {
+      setSubmittingState(false);
+      Swal.fire("Please select a shift");
+      return;
+    }
 
-          newWorker.addEventListener("statechange", () => {
-            if (
-              newWorker.state === "installed" &&
-              navigator.serviceWorker.controller
-            ) {
-              Swal.fire({
-                icon: "info",
-                title: "Update Available",
-                text: "A new version of K5Tech Attendance is available.",
-                confirmButtonText: "Update Now"
-              }).then(() => {
-                newWorker.postMessage({ action: "skipWaiting" });
-              });
-            }
-          });
+    if (!capturedImage) {
+      setSubmittingState(false);
+      Swal.fire("Please capture selfie");
+      return;
+    }
+
+    const payload = buildPayload(clockType);
+    const action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
+
+    Swal.fire({
+      title: emp + " " + action + "...",
+      text: "Please wait",
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+      if (!navigator.onLine) {
+        await savePendingSubmission(payload);
+        setSubmittingState(false);
+        clearForm();
+        await refreshPendingStatus();
+
+        Swal.fire({
+          icon: "info",
+          title: "Saved offline",
+          text: "Attendance was saved on this device and will sync automatically when internet returns."
+        });
+        return;
+      }
+
+      const res = await sendPayload(payload);
+
+      setSubmittingState(false);
+
+      if (res.status === "error") {
+        Swal.fire(res.message);
+        return;
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: emp + " Attendance Saved",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+      clearForm();
+      await refreshPendingStatus();
+
+    } catch (err) {
+      console.error("Submit error:", err);
+
+      try {
+        await savePendingSubmission(payload);
+        setSubmittingState(false);
+        clearForm();
+        await refreshPendingStatus();
+
+        Swal.fire({
+          icon: "warning",
+          title: "Saved offline",
+          text: "Upload failed, but attendance was saved on this device and will sync automatically later."
+        });
+      } catch (dbErr) {
+        setSubmittingState(false);
+        console.error("Offline save error:", dbErr);
+        Swal.fire("Failed to save attendance. Please try again.");
+      }
+    }
+  }
+
+  window.addEventListener("online", () => {
+    refreshPendingStatus();
+    syncPendingAttendance(true);
+  });
+
+  window.addEventListener("offline", () => {
+    refreshPendingStatus();
+  });
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js").then(registration => {
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+
+        newWorker.addEventListener("statechange", () => {
+          if (
+            newWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
+            Swal.fire({
+              icon: "info",
+              title: "Update Available",
+              text: "A new version of K5Tech Attendance is available.",
+              confirmButtonText: "Update Now"
+            }).then(() => {
+              newWorker.postMessage({ action: "skipWaiting" });
+            });
+          }
         });
       });
+    });
 
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        window.location.reload();
-      });
-    }
-  </script>
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
+  }
+
+  refreshPendingStatus();
+  syncPendingAttendance();
+</script>
 </body>
 </html>
