@@ -207,10 +207,11 @@
   </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycby9Bws9yjtc0k9cJYKFuQ3r3nLOGma85LfzfByZ-YcZmMT2HpXgbm-wAbPSGPHcPxk6/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbw_fbGqCi4_Z0EF3WC8PaF-DNpf6AOimWOOC04cKyfaOeG4Og2QcaSMBQHKjEkRBkO9/exec";
 
   let lat = "";
   let lng = "";
+  let resolvedAddress = "";
 
   let stream = null;
   let capturedImage = "";
@@ -338,9 +339,16 @@
   }
 
   function getLocationText() {
+    if (resolvedAddress) {
+      return resolvedAddress.length > 60
+        ? resolvedAddress.slice(0, 60) + "..."
+        : resolvedAddress;
+    }
+
     if (lat !== "" && lng !== "") {
       return `GPS: ${formatCoord(lat)}, ${formatCoord(lng)}`;
     }
+
     return "GPS unavailable";
   }
 
@@ -350,12 +358,33 @@
     return [line1, line2];
   }
 
+  async function fetchAddressFromCoords(lat, lng) {
+    try {
+      const url = `${API_URL}?action=reverseGeocode&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.status === "success" && data.address) {
+        return data.address;
+      }
+
+      return "";
+    } catch (err) {
+      console.error("Address fetch error:", err);
+      return "";
+    }
+  }
+
   // GPS
   navigator.geolocation.getCurrentPosition(
-    function(pos) {
+    async function(pos) {
       lat = pos.coords.latitude;
       lng = pos.coords.longitude;
+
       gpsEl.innerHTML = "📍 GPS: " + lat.toFixed(6) + ", " + lng.toFixed(6);
+
+      resolvedAddress = await fetchAddressFromCoords(lat, lng);
+
       refreshPendingStatus();
     },
     function(err) {
@@ -526,7 +555,7 @@
       notes: notes,
       lat: lat,
       lng: lng,
-      address: "", // server will resolve and save static address
+      address: resolvedAddress || "",
       image: addWatermark(canvas, buildWatermarkLines(emp, site))
     };
   }
