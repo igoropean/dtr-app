@@ -285,11 +285,11 @@
       const store = tx.objectStore(STORE_NAME);
       const request = store.getAll();
 
-      request.onsuccess = () => {
-        const items = request.result || [];
-        items.sort((a, b) => new Date(a.clientTimestamp) - new Date(b.clientTimestamp));
-        resolve(items);
-      };
+    request.onsuccess = () => {
+      const items = request.result || [];
+      items.sort((a, b) => (a.clientTimestampFile || "").localeCompare(b.clientTimestampFile || ""));
+      resolve(items);
+    };
 
       request.onerror = () => reject(request.error);
     });
