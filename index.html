@@ -1,784 +1,3101 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="manifest.json">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+    <title>K5Tech Attendance</title>
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f7;
-      margin: 0;
-    }
+    <link rel="manifest" href="manifest.json" />
 
-    .container {
-      max-width: 500px;
-      margin: auto;
-      padding: 20px;
-    }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+    <style>
+      /* * {
+        box-sizing: border-box;
+      } */
 
-    h2 {
-      margin-top: 0;
-      text-align: center;
-    }
+      /* =====================================================
+   GLOBAL DARK GLASS THEME
+===================================================== */
 
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-top: 12px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
+      :root {
+        --theme-bg-dark: #0a0c12;
+        --theme-bg-deep: #121621;
 
-    textarea {
-      resize: none;
-      height: 70px;
-    }
+        --theme-glass: rgba(255, 255, 255, 0.06);
+        --theme-glass-light: rgba(255, 255, 255, 0.08);
+        --theme-glass-dark: rgba(0, 0, 0, 0.3);
 
-    button {
-      width: 100%;
-      padding: 18px;
-      font-size: 18px;
-      margin-top: 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+        --theme-border: rgba(255, 255, 255, 0.1);
+        --theme-border-light: rgba(255, 255, 255, 0.15);
 
-    button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
+        --theme-text: #ffffff;
+        --theme-text-soft: #e2e8f0;
+        --theme-muted: #a0aec0;
 
-    .clockin {
-      background: #2ecc71;
-      color: white;
-    }
+        --theme-red: #d6001c;
+        --theme-red-dark: #b50017;
 
-    .clockout {
-      background: #e74c3c;
-      color: white;
-    }
+        --theme-blue: #0056ff;
+        --theme-green: #2ecc71;
 
-    #gps {
-      font-size: 14px;
-      margin-bottom: 10px;
-      color: #666;
-    }
+        --theme-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      }
 
-    .shift-group {
-      margin-top: 15px;
-    }
+      /* =====================================================
+   GLOBAL BODY
+===================================================== */
 
-    .shift-option {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-      font-size: 16px;
-    }
+      body {
+        font-family: Arial, sans-serif;
 
-    .shift-option input {
-      margin: 0;
-      margin-right: 12px;
-      width: auto;
-    }
+        margin: 0;
 
-    .shift-option span {
-      display: inline-block;
-    }
+        color: var(--theme-text);
 
-    .camera-box {
-      position: relative;
-      width: 100%;
-      margin-top: 10px;
-    }
+        background:
+          radial-gradient(
+            circle,
+            rgba(18, 22, 33, 0.85) 30%,
+            rgba(10, 12, 18, 0.98) 100%
+          ),
+          url("K5Tech_Icon_512.png");
 
-    #camera,
-    #selfieCanvas {
-      width: 100%;
-      border-radius: 12px;
-      margin-top: 10px;
-      background: black;
-    }
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
 
-    #camera {
-      display: none;
-    }
+        min-height: 100vh;
+      }
 
-    #selfieCanvas {
-      display: none;
-    }
+      /* =====================================================
+   GLOBAL VIEW CONTAINERS
+===================================================== */
 
-    .camera-controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 10px;
-      gap: 15px;
-    }
+      #dashboardView,
+      #attendanceView {
+        min-height: 100vh;
 
-    .capture-btn {
-      width: 100%;
-      padding: 16px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
-    }
+        background: radial-gradient(
+          circle,
+          rgba(18, 22, 33, 0.8) 30%,
+          rgba(10, 12, 18, 0.96) 100%
+        );
+      }
 
-    .selfie-start {
-      background: #3498db;
-    }
+      /* =====================================================
+   SHARED CONTAINER
+===================================================== */
 
-    .selfie-capture {
-      background: #2ecc71;
-    }
+      .container {
+        max-width: 560px;
+        margin: auto;
+        padding: 20px;
+      }
 
-    .selfie-retake {
-      background: #f39c12;
-    }
-  </style>
-</head>
+      /* =====================================================
+   GLASS CARD
+===================================================== */
 
-<body>
-  <div class="container">
-    <div class="card">
+      .card {
+        background: rgba(255, 255, 255, 0.06);
 
-      <h2>K5Tech Attendance</h2>
+        backdrop-filter: blur(16px);
 
-      <div id="gps">📍 Detecting GPS...</div>
-      <div style="font-size:13px;color:#999;">Location required for attendance</div>
+        -webkit-backdrop-filter: blur(16px);
 
-      <input id="employeeId" placeholder="Employee ID">
-      <input id="site" placeholder="Site Name">
-      <textarea id="notes" placeholder="Notes"></textarea>
+        border: 1px solid rgba(255, 255, 255, 0.1);
 
-      <h3>Selfie Verification</h3>
+        border-radius: 16px;
 
-      <div class="camera-box">
-        <video id="camera" autoplay playsinline></video>
-        <canvas id="selfieCanvas"></canvas>
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        padding: 20px 16px 30px;
+      }
 
-        <div class="camera-controls">
-          <button type="button" id="selfieBtn" class="capture-btn selfie-start">
-            📷 Take Selfie
+      button,
+      input,
+      textarea {
+        font-family: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .app-header {
+        text-align: center;
+        margin-bottom: 22px;
+      }
+
+      .app-header h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .app-header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      /* =====================================================
+   LOGIN
+===================================================== */
+
+      /* 1. Global View Wrapper & Background */
+      #loginView {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+
+        /* Blends a dark vignette gradient over the logo so text stays readable */
+        background:
+          radial-gradient(
+            circle,
+            rgba(18, 22, 33, 0.85) 30%,
+            rgba(10, 12, 18, 0.98) 100%
+          ),
+          url("K5Tech_Icon_512.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+
+      #loginView input,
+      #loginView textarea {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        outline: none;
+        background: rgba(0, 0, 0, 0.3);
+        color: #ffffff;
+        box-sizing: border-box;
+      }
+
+      #loginView input:focus,
+      #loginView textarea:focus {
+        border-color: #0056ff;
+        box-shadow: 0 0 8px rgba(0, 86, 255, 0.4);
+      }
+
+      /* 2. Glassmorphism Login Card Layout */
+      .login-card {
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255, 255, 255, 0.06); /* Translucent white surface */
+        backdrop-filter: blur(16px); /* Blurs logo graphics behind the card */
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        box-sizing: border-box;
+      }
+
+      /* 3. Logo Image Formatting */
+      .login-logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        border-radius: 18px;
+      }
+
+      .login-logo-img {
+        max-width: 120px;
+        height: auto;
+        display: block;
+      }
+
+      /* 4. Typography Theme Alignment */
+      .login-title {
+        text-align: center;
+        margin: 0;
+        font-size: 25px;
+        color: #ffffff; /* Bright white title text */
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+
+      .login-subtitle {
+        text-align: center;
+        margin: 8px 0 25px;
+        font-size: 14px;
+        color: #a0aec0; /* Soft muted gray-blue */
+      }
+
+      .form-label {
+        display: block;
+        margin-top: 14px;
+        margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #e2e8f0; /* Light silver input labels */
+      }
+
+      /* 5. Translucent Form Inputs */
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15); /* Translucent light border */
+        outline: none;
+        background: rgba(0, 0, 0, 0.3); /* Dark contrast field background */
+        color: #ffffff; /* White user-input text */
+        box-sizing: border-box;
+      }
+
+      /* Active field focus matches your theme colors */
+      input:focus,
+      textarea:focus {
+        border-color: #0056ff; /* Vibrant blue logo highlight color */
+        box-shadow: 0 0 8px rgba(0, 86, 255, 0.4);
+      }
+
+      textarea {
+        resize: none;
+        height: 70px;
+      }
+
+      /* 6. Vivid Red Theme Action Button */
+      .primary-btn {
+        width: 100%;
+        padding: 15px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 9px;
+        background: #d6001c; /* Vibrant logo red accent color */
+        color: #ffffff;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .primary-btn:hover {
+        background: #b50017; /* Darkens smoothly on hover */
+      }
+
+      /* =====================================================
+   DASHBOARD
+===================================================== */
+
+      #dashboardView {
+        padding-top: 20px;
+      }
+
+      /* =====================================================
+   DASHBOARD WELCOME HEADER
+===================================================== */
+
+      .dashboard-top {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(255, 255, 255, 0.03)
+        );
+
+        backdrop-filter: blur(16px);
+
+        -webkit-backdrop-filter: blur(16px);
+
+        color: #ffffff;
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        border-radius: 16px;
+
+        padding: 22px;
+
+        margin-bottom: 15px;
+
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+      }
+
+      .dashboard-top h2 {
+        margin: 0;
+
+        font-size: 23px;
+
+        color: #ffffff;
+
+        font-weight: 700;
+
+        letter-spacing: -0.3px;
+      }
+
+      .employee-id-display {
+        margin-top: 7px;
+
+        font-size: 13px;
+
+        color: #a0aec0;
+      }
+
+      /* =====================================================
+   CUTOFF DISPLAY
+===================================================== */
+
+      .cutoff-card {
+        margin-top: 18px;
+
+        padding: 12px 15px;
+
+        border-radius: 10px;
+
+        background: rgba(0, 0, 0, 0.25);
+
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .cutoff-label {
+        font-size: 11px;
+
+        color: #a0aec0;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.5px;
+      }
+
+      .cutoff-value {
+        font-size: 15px;
+
+        font-weight: bold;
+
+        margin-top: 4px;
+
+        color: #ffffff;
+      }
+
+      /* =====================================================
+   DASHBOARD ACTION BUTTONS
+===================================================== */
+
+      .dashboard-actions {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 10px;
+
+        margin-bottom: 15px;
+      }
+
+      .action-btn {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        border-radius: 9px;
+
+        padding: 13px 10px;
+
+        font-size: 14px;
+
+        font-weight: bold;
+
+        transition: all 0.2s ease;
+      }
+
+      /* Record Attendance */
+
+      .record-btn {
+        background: #d6001c;
+
+        color: #ffffff;
+
+        box-shadow: 0 5px 15px rgba(214, 0, 28, 0.25);
+      }
+
+      .record-btn:hover {
+        background: #b50017;
+
+        transform: translateY(-1px);
+      }
+
+      /* Refresh */
+
+      .refresh-btn {
+        background: rgba(255, 255, 255, 0.06);
+
+        color: #e2e8f0;
+
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .refresh-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* =====================================================
+   ATTENDANCE TABLE CARD
+===================================================== */
+
+      .table-card {
+        background: rgba(255, 255, 255, 0.06);
+
+        backdrop-filter: blur(16px);
+
+        -webkit-backdrop-filter: blur(16px);
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        border-radius: 14px;
+
+        padding: 10px;
+
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+
+        overflow: hidden;
+      }
+
+      .table-title {
+        font-size: 15px;
+
+        font-weight: bold;
+
+        color: #ffffff;
+
+        padding: 7px 6px 11px;
+      }
+
+      /* =====================================================
+   DARK ATTENDANCE TABLE
+===================================================== */
+
+      .attendance-table {
+        width: 100%;
+
+        min-width: 470px;
+
+        border-collapse: separate;
+
+        border-spacing: 0;
+
+        font-size: 12px;
+
+        color: #e2e8f0;
+      }
+
+      .attendance-table th {
+        background: rgba(0, 0, 0, 0.3);
+
+        color: #a0aec0;
+
+        padding: 8px 6px;
+
+        text-align: center;
+
+        font-weight: bold;
+
+        white-space: nowrap;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .attendance-table td {
+        padding: 7px 5px;
+
+        height: 34px;
+
+        text-align: center;
+
+        white-space: nowrap;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .attendance-table th:first-child,
+      .attendance-table td:first-child {
+        text-align: left;
+
+        padding-left: 8px;
+      }
+
+      /* =====================================================
+   WEEKEND ROW
+===================================================== */
+
+      .attendance-table tbody tr.weekend {
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      /* =====================================================
+   TODAY
+===================================================== */
+
+      .attendance-table tbody tr.today {
+        background: rgba(0, 86, 255, 0.12);
+      }
+
+      /* =====================================================
+   DATE
+===================================================== */
+
+      .date-cell {
+        font-weight: bold;
+
+        color: #ffffff;
+      }
+
+      .date-day {
+        color: #a0aec0;
+
+        font-weight: normal;
+
+        margin-left: 3px;
+      }
+
+      /* =====================================================
+   RECORDED TIME
+===================================================== */
+
+      .time-recorded {
+        color: #6ee7a0;
+
+        font-weight: bold;
+      }
+
+      /* =====================================================
+   MISSING TIME
+===================================================== */
+
+      .time-missing {
+        color: rgba(160, 174, 192, 0.45);
+      }
+
+      /* =====================================================
+   DASHBOARD STATUS
+===================================================== */
+
+      .dashboard-status {
+        font-size: 12px;
+
+        color: #a0aec0;
+
+        text-align: center;
+
+        padding: 12px 5px;
+      }
+
+      /* =====================================================
+   LOGOUT BUTTON
+===================================================== */
+
+      .logout-btn {
+        width: 100%;
+
+        margin-top: 10px;
+
+        padding: 12px;
+
+        border: 1px solid rgba(214, 0, 28, 0.25);
+
+        border-radius: 8px;
+
+        background: rgba(214, 0, 28, 0.08);
+
+        color: #ff7180;
+
+        font-weight: bold;
+
+        transition: all 0.2s ease;
+      }
+
+      .logout-btn:hover {
+        background: rgba(214, 0, 28, 0.16);
+
+        color: #ffffff;
+      }
+
+      /* =====================================================
+   RECORD ATTENDANCE PAGE
+===================================================== */
+
+      /* #attendanceView {
+        min-height: 100vh;
+
+        padding: 20px 16px 30px;
+
+        box-sizing: border-box;
+
+      }
+
+      #attendanceView .container {
+        padding: 0;
+      } */
+      /* =====================================================
+   ATTENDANCE HEADER
+===================================================== */
+
+      .attendance-header {
+        display: flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+        margin-bottom: 15px;
+      }
+
+      .attendance-employee {
+        flex: 1;
+      }
+
+      .attendance-employee-name {
+        font-weight: bold;
+
+        font-size: 16px;
+
+        color: #ffffff;
+      }
+
+      .attendance-employee-id {
+        font-size: 12px;
+
+        color: #a0aec0;
+
+        margin-top: 2px;
+      }
+
+      /* =====================================================
+   BACK BUTTON
+===================================================== */
+
+      .back-btn {
+        width: auto;
+
+        padding: 10px 14px;
+
+        margin: 0;
+
+        border: 1px solid rgba(255, 255, 255, 0.12);
+
+        border-radius: 8px;
+
+        background: rgba(255, 255, 255, 0.06);
+
+        color: #e2e8f0;
+
+        font-weight: bold;
+
+        transition: all 0.2s ease;
+      }
+
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* =====================================================
+   GPS / SYNC STATUS
+===================================================== */
+
+      #gps {
+        font-size: 14px;
+
+        margin-bottom: 5px;
+
+        color: #e2e8f0;
+      }
+
+      #syncStatus {
+        font-size: 13px;
+
+        margin-bottom: 10px;
+      }
+
+      .location-note {
+        font-size: 12px;
+
+        color: #a0aec0;
+
+        margin-bottom: 15px;
+      }
+
+      /* =====================================================
+   ATTENDANCE FORM INPUTS
+===================================================== */
+
+      #attendanceView input,
+      #attendanceView textarea {
+        background: rgba(0, 0, 0, 0.3);
+
+        color: #ffffff;
+
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      #attendanceView input::placeholder,
+      #attendanceView textarea::placeholder {
+        color: #718096;
+      }
+
+      #attendanceView input:focus,
+      #attendanceView textarea:focus {
+        border-color: #0056ff;
+
+        box-shadow: 0 0 8px rgba(0, 86, 255, 0.4);
+      }
+
+      /* =====================================================
+   ATTENDANCE FORM LABELS
+===================================================== */
+
+      #attendanceView .form-label {
+        color: #e2e8f0;
+      }
+
+      /* =====================================================
+   SHIFT SELECTION
+===================================================== */
+
+      .shift-option {
+        display: flex;
+
+        align-items: center;
+
+        margin-top: 10px;
+
+        font-size: 15px;
+
+        padding: 9px;
+
+        border-radius: 8px;
+
+        color: #e2e8f0;
+
+        transition: background 0.2s ease;
+      }
+
+      .shift-option input {
+        margin: 0;
+
+        margin-right: 12px;
+
+        width: auto;
+      }
+
+      .shift-option.auto-selected {
+        background: rgba(0, 86, 255, 0.12);
+
+        border: 1px solid rgba(0, 86, 255, 0.3);
+      }
+
+      .shift-hint {
+        font-size: 12px;
+
+        color: #a0aec0;
+
+        margin-top: 7px;
+      }
+
+      /* =====================================================
+   CAMERA
+===================================================== */
+
+      #camera,
+      #selfieCanvas {
+        width: 100%;
+
+        border-radius: 12px;
+
+        margin-top: 10px;
+
+        background: #000000;
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* =====================================================
+   SELFIE BUTTON
+===================================================== */
+
+      .capture-btn {
+        width: 100%;
+
+        padding: 14px;
+
+        margin-top: 10px;
+
+        border: none;
+
+        border-radius: 9px;
+
+        color: #ffffff;
+
+        font-size: 16px;
+
+        font-weight: bold;
+
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+
+        transition: all 0.2s ease;
+      }
+
+      .selfie-start {
+        background: #0056ff;
+      }
+
+      .selfie-start:hover {
+        background: #0047d6;
+      }
+
+      .selfie-capture {
+        background: #2ecc71;
+      }
+
+      .selfie-retake {
+        background: #f39c12;
+      }
+
+      /* =====================================================
+   ATTENDANCE ACTIONS
+===================================================== */
+
+      .attendance-actions {
+        margin-top: 20px;
+      }
+
+      .attendance-actions button {
+        width: 100%;
+
+        padding: 16px;
+
+        font-size: 17px;
+
+        margin-top: 12px;
+
+        border: none;
+
+        border-radius: 9px;
+
+        font-weight: bold;
+
+        transition: all 0.2s ease;
+      }
+
+      /* Clock In */
+
+      .clockin {
+        background: #2ecc71;
+
+        color: #ffffff;
+
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.2);
+      }
+
+      .clockin:hover {
+        background: #27ae60;
+      }
+
+      /* Clock Out */
+
+      .clockout {
+        background: #d6001c;
+
+        color: #ffffff;
+
+        box-shadow: 0 5px 15px rgba(214, 0, 28, 0.25);
+      }
+
+      .clockout:hover {
+        background: #b50017;
+      }
+
+      /* =====================================================
+   RESPONSIVE
+===================================================== */
+
+      @media (max-width: 420px) {
+        .container {
+          padding: 12px;
+        }
+
+        .dashboard-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .dashboard-top {
+          padding: 18px;
+        }
+
+        .table-card {
+          padding: 8px;
+        }
+
+        .attendance-table {
+          font-size: 11px;
+        }
+
+        .attendance-table th {
+          padding: 7px 5px;
+        }
+
+        .attendance-table td {
+          padding: 6px 4px;
+        }
+      }
+
+      /* =====================================================
+   SWEETALERT2 - K5TECH DARK GLASS THEME
+===================================================== */
+
+      .swal2-popup {
+        background: rgba(18, 22, 33, 0.92) !important;
+
+        backdrop-filter: blur(18px);
+
+        -webkit-backdrop-filter: blur(18px);
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        border-radius: 16px !important;
+
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+
+        color: #ffffff !important;
+      }
+
+      /* =====================================================
+   SWEETALERT TITLE
+===================================================== */
+
+      .swal2-title {
+        color: #ffffff !important;
+
+        font-size: 21px !important;
+
+        font-weight: 700 !important;
+      }
+
+      /* =====================================================
+   SWEETALERT CONTENT
+===================================================== */
+
+      .swal2-html-container,
+      .swal2-content {
+        color: #a0aec0 !important;
+
+        font-size: 14px !important;
+      }
+
+      /* =====================================================
+   CONFIRM BUTTON
+===================================================== */
+
+      .swal2-confirm {
+        background: #d6001c !important;
+
+        color: #ffffff !important;
+
+        border: none !important;
+
+        border-radius: 9px !important;
+
+        padding: 11px 22px !important;
+
+        font-size: 14px !important;
+
+        font-weight: bold !important;
+
+        box-shadow: 0 5px 15px rgba(214, 0, 28, 0.25) !important;
+      }
+
+      .swal2-confirm:hover {
+        background: #b50017 !important;
+      }
+
+      /* =====================================================
+   CANCEL BUTTON
+===================================================== */
+
+      .swal2-cancel {
+        background: rgba(255, 255, 255, 0.08) !important;
+
+        color: #e2e8f0 !important;
+
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+
+        border-radius: 9px !important;
+
+        padding: 11px 22px !important;
+
+        font-size: 14px !important;
+
+        font-weight: bold !important;
+      }
+
+      .swal2-cancel:hover {
+        background: rgba(255, 255, 255, 0.13) !important;
+      }
+
+      /* =====================================================
+   SWEETALERT DENY BUTTON
+===================================================== */
+
+      .swal2-deny {
+        background: #0056ff !important;
+
+        color: #ffffff !important;
+
+        border-radius: 9px !important;
+
+        font-weight: bold !important;
+      }
+
+      /* =====================================================
+   SWEETALERT INPUT
+===================================================== */
+
+      .swal2-input,
+      .swal2-textarea,
+      .swal2-select {
+        background: rgba(0, 0, 0, 0.3) !important;
+
+        color: #ffffff !important;
+
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+
+        border-radius: 8px !important;
+      }
+
+      .swal2-input:focus,
+      .swal2-textarea:focus,
+      .swal2-select:focus {
+        border-color: #0056ff !important;
+
+        box-shadow: 0 0 8px rgba(0, 86, 255, 0.4) !important;
+      }
+
+      /* =====================================================
+   SWEETALERT VALIDATION MESSAGE
+===================================================== */
+
+      .swal2-validation-message {
+        background: rgba(214, 0, 28, 0.12) !important;
+
+        color: #ff7180 !important;
+      }
+
+      /* =====================================================
+   SWEETALERT LOADING SPINNER
+===================================================== */
+
+      .swal2-loader {
+        border-color: #d6001c transparent #d6001c transparent !important;
+      }
+
+      /* =====================================================
+   SWEETALERT CLOSE BUTTON
+===================================================== */
+
+      .swal2-close {
+        color: #a0aec0 !important;
+      }
+
+      .swal2-close:hover {
+        color: #ffffff !important;
+      }
+
+      /* =====================================================
+   SWEETALERT ICONS
+===================================================== */
+
+      .swal2-icon.swal2-success {
+        border-color: #2ecc71 !important;
+
+        color: #2ecc71 !important;
+      }
+
+      .swal2-icon.swal2-error {
+        border-color: #d6001c !important;
+
+        color: #d6001c !important;
+      }
+
+      .swal2-icon.swal2-warning {
+        border-color: #f39c12 !important;
+
+        color: #f39c12 !important;
+      }
+
+      .swal2-icon.swal2-info {
+        border-color: #0056ff !important;
+
+        color: #0056ff !important;
+      }
+
+      /* =====================================================
+   SWEETALERT BACKDROP
+===================================================== */
+
+      .swal2-container {
+        background: rgba(0, 0, 0, 0.6) !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- =====================================================
+       LOGIN VIEW
+  ===================================================== -->
+
+    <section id="loginView">
+      <div class="card login-card">
+        <!-- <div class="login-logo">K5</div> -->
+
+        <div class="login-logo-container">
+          <img
+            src="K5Tech_Icon_192.png"
+            alt="K5Tech Logo"
+            class="login-logo-img" />
+        </div>
+
+        <h1 class="login-title">K5Tech Attendance</h1>
+
+        <p class="login-subtitle">Sign in to view your attendance records</p>
+
+        <label class="form-label" for="loginUsername"> Employee ID </label>
+
+        <input
+          id="loginUsername"
+          type="text"
+          placeholder="Enter Employee ID"
+          autocomplete="username" />
+
+        <label class="form-label" for="loginPassword"> Password </label>
+
+        <input
+          id="loginPassword"
+          type="password"
+          placeholder="Enter Password"
+          autocomplete="current-password" />
+
+        <button
+          type="button"
+          id="loginBtn"
+          class="primary-btn"
+          onclick="login()">
+          Login
+        </button>
+      </div>
+    </section>
+
+    <!-- =====================================================
+       DASHBOARD VIEW
+  ===================================================== -->
+
+    <section id="dashboardView" class="hidden">
+      <div class="container">
+        <div class="dashboard-top">
+          <h2 id="welcomeName">Welcome</h2>
+
+          <div id="dashboardEmployeeId" class="employee-id-display">
+            Employee ID:
+          </div>
+
+          <div class="cutoff-card">
+            <div class="cutoff-label">Current Cutoff Period</div>
+
+            <div id="cutoffDisplay" class="cutoff-value">Loading...</div>
+          </div>
+        </div>
+
+        <div class="dashboard-actions">
+          <button
+            type="button"
+            class="action-btn record-btn"
+            onclick="showAttendanceView()">
+            📍 Record Attendance
+          </button>
+
+          <button
+            type="button"
+            class="action-btn refresh-btn"
+            id="refreshDashboardBtn"
+            onclick="loadDashboard()">
+            🔄 Refresh
           </button>
         </div>
+
+        <div class="table-card">
+          <div class="table-title">Daily Time Records</div>
+
+          <div class="table-wrapper">
+            <table class="attendance-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Day In</th>
+                  <th>Day Out</th>
+                  <th>Night In</th>
+                  <th>Night Out</th>
+                </tr>
+              </thead>
+
+              <tbody id="attendanceTableBody">
+                <tr>
+                  <td colspan="5" class="dashboard-status">
+                    Loading attendance records...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="dashboardStatus" class="dashboard-status"></div>
+
+        <button type="button" class="logout-btn" onclick="logout()">
+          🚪 Logout
+        </button>
       </div>
+    </section>
 
-      <h3>Select Shift</h3>
+    <!-- =====================================================
+       ATTENDANCE VIEW
+  ===================================================== -->
 
-      <div class="shift-group">
-        <label class="shift-option">
-          <input type="radio" name="shift" value="Day">
-          <span>Day Shift</span>
-        </label>
+    <section id="attendanceView" class="hidden">
+      <div class="container">
+        <div class="card">
+          <div class="attendance-header">
+            <button
+              type="button"
+              class="back-btn"
+              onclick="showDashboardView()">
+              ← Back
+            </button>
 
-        <label class="shift-option">
-          <input type="radio" name="shift" value="Night">
-          <span>Night Shift</span>
-        </label>
+            <div class="attendance-employee">
+              <div id="attendanceEmployeeName" class="attendance-employee-name">
+                Employee
+              </div>
+
+              <div id="attendanceEmployeeId" class="attendance-employee-id">
+                Employee ID
+              </div>
+            </div>
+          </div>
+
+          <div id="gps">📍 Detecting GPS...</div>
+
+          <div class="location-note">Location required for attendance</div>
+
+          <div id="syncStatus" style="font-size: 13px; color: #666">
+            Checking sync status...
+          </div>
+
+          <label class="form-label"> Site Name </label>
+
+          <input id="site" placeholder="Site Name" />
+
+          <label class="form-label"> Notes </label>
+
+          <textarea id="notes" placeholder="Notes"></textarea>
+
+          <h3>Selfie Verification</h3>
+
+          <div class="camera-box">
+            <video id="camera" autoplay playsinline></video>
+
+            <canvas id="selfieCanvas"></canvas>
+
+            <div class="camera-controls">
+              <button
+                type="button"
+                id="selfieBtn"
+                class="capture-btn selfie-start">
+                📷 Take Selfie
+              </button>
+            </div>
+          </div>
+
+          <h3>Select Shift</h3>
+
+          <div class="shift-group">
+            <label class="shift-option" id="dayShiftOption">
+              <input type="radio" name="shift" value="Day" />
+
+              <span> Day Shift </span>
+            </label>
+
+            <label class="shift-option" id="nightShiftOption">
+              <input type="radio" name="shift" value="Night" />
+
+              <span> Night Shift </span>
+            </label>
+
+            <div id="shiftHint" class="shift-hint"></div>
+          </div>
+
+          <div class="attendance-actions">
+            <button
+              type="button"
+              class="clockin"
+              id="clockInBtn"
+              onclick="submitAttendance('Clock-In')">
+              Clock In
+            </button>
+
+            <button
+              type="button"
+              class="clockout"
+              id="clockOutBtn"
+              onclick="submitAttendance('Clock-Out')">
+              Clock Out
+            </button>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <h3>Attendance</h3>
+    <script>
+      /**********************************************************
+       * CONFIGURATION
+       **********************************************************/
 
-      <button type="button" class="clockin" id="clockInBtn" onclick="submitAttendance('Clock-In')">Clock In</button>
-      <button type="button" class="clockout" id="clockOutBtn" onclick="submitAttendance('Clock-Out')">Clock Out</button>
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbx5eEMfOFawDBzHNLS_vseenYbzynm8RTmbwMnnaYDCPIKANXjhuRbjinn9ZWkE0Tr3/exec";
 
-      <br><br>
+      /**********************************************************
+       * SESSION
+       **********************************************************/
 
-    </div>
-  </div>
+      let currentUser = null;
 
-<script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbx5eEMfOFawDBzHNLS_vseenYbzynm8RTmbwMnnaYDCPIKANXjhuRbjinn9ZWkE0Tr3/exec";
+      let currentCutoff = null;
 
-  let lat = "";
-  let lng = "";
-  let resolvedAddress = "";
+      const SESSION_KEY = "k5techAttendanceUser";
 
-  let stream = null;
-  let capturedImage = "";
-  let cameraActive = false;
-  let isSubmitting = false;
+      function saveSession(user) {
+        currentUser = user;
 
-  const DB_NAME = "k5tech-attendance-db";
-  const DB_VERSION = 1;
-  const STORE_NAME = "pendingAttendance";
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      }
 
-  const gpsEl = document.getElementById("gps");
-  const video = document.getElementById("camera");
-  const canvas = document.getElementById("selfieCanvas");
-  const selfieBtn = document.getElementById("selfieBtn");
-  const clockInBtn = document.getElementById("clockInBtn");
-  const clockOutBtn = document.getElementById("clockOutBtn");
+      function loadSession() {
+        try {
+          const saved = sessionStorage.getItem(SESSION_KEY);
 
-  // Add a small sync status line under GPS at runtime
-  const syncEl = document.createElement("div");
-  syncEl.id = "syncStatus";
-  syncEl.style.fontSize = "13px";
-  syncEl.style.color = "#666";
-  syncEl.style.marginBottom = "10px";
-  syncEl.innerText = navigator.onLine ? "🟢 Online" : "🟠 Offline";
-  gpsEl.insertAdjacentElement("afterend", syncEl);
+          if (!saved) {
+            return null;
+          }
 
-  function setSyncStatus(text, color) {
-    syncEl.innerText = text;
-    syncEl.style.color = color || "#666";
-  }
+          const user = JSON.parse(saved);
 
-  function openDb() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+          if (!user || !user.employeeId || !user.name) {
+            return null;
+          }
 
-      request.onupgradeneeded = function(event) {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: "recordId" });
+          currentUser = user;
+
+          return user;
+        } catch (err) {
+          console.error("Session load error:", err);
+
+          return null;
         }
-      };
-
-      request.onsuccess = function() {
-        resolve(request.result);
-      };
-
-      request.onerror = function() {
-        reject(request.error);
-      };
-    });
-  }
-
-  async function savePendingSubmission(payload) {
-    const db = await openDb();
-
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      store.put(payload);
-
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  async function getPendingSubmissions() {
-    const db = await openDb();
-
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const store = tx.objectStore(STORE_NAME);
-      const request = store.getAll();
-
-    request.onsuccess = () => {
-      const items = request.result || [];
-      items.sort((a, b) => (a.clientTimestampFile || "").localeCompare(b.clientTimestampFile || ""));
-      resolve(items);
-    };
-
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  async function deletePendingSubmission(recordId) {
-    const db = await openDb();
-
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      store.delete(recordId);
-
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  async function getPendingCount() {
-    const items = await getPendingSubmissions();
-    return items.length;
-  }
-
-  async function refreshPendingStatus() {
-    const count = await getPendingCount();
-
-    if (!navigator.onLine) {
-      setSyncStatus(`🟠 Offline${count ? " • Pending sync: " + count : ""}`, "#b26a00");
-      return;
-    }
-
-    if (count > 0) {
-      setSyncStatus(`🟡 Online • Pending sync: ${count}`, "#9a7b00");
-    } else {
-      setSyncStatus("🟢 Online • All synced", "#2e7d32");
-    }
-  }
-
-  function createRecordId() {
-    return "att_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
-  }
-
-  function formatCoord(value) {
-    return value === "" || value === null || value === undefined
-      ? ""
-      : Number(value).toFixed(6);
-  }
-
-  function getLocationText() {
-    if (resolvedAddress) {
-      return resolvedAddress.length > 60
-        ? resolvedAddress.slice(0, 60) + "..."
-        : resolvedAddress;
-    }
-
-    if (lat !== "" && lng !== "") {
-      return `GPS: ${formatCoord(lat)}, ${formatCoord(lng)}`;
-    }
-
-    return "GPS unavailable";
-  }
-
-  function pad2(num) {
-    return String(num).padStart(2, "0");
-  }
-
-  function getClientTimestampText() {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = pad2(now.getMonth() + 1);
-    const dd = pad2(now.getDate());
-    const hh = pad2(now.getHours());
-    const mi = pad2(now.getMinutes());
-    const ss = pad2(now.getSeconds());
-
-    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
-  }
-
-  function getClientTimestampFile() {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = pad2(now.getMonth() + 1);
-    const dd = pad2(now.getDate());
-    const hh = pad2(now.getHours());
-    const mi = pad2(now.getMinutes());
-
-    return `${yyyy}-${mm}-${dd}_${hh}-${mi}`;
-  }
-
-  function buildWatermarkLines(emp, site, timestampText) {
-    const line1 = `${emp} | ${timestampText} | ${site || "-"}`;
-    const line2 = getLocationText();
-    return [line1, line2];
-  }
-
-  async function fetchAddressFromCoords(lat, lng) {
-    try {
-      const url = `${API_URL}?action=reverseGeocode&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.status === "success" && data.address) {
-        return data.address;
       }
 
-      return "";
-    } catch (err) {
-      console.error("Address fetch error:", err);
-      return "";
-    }
-  }
+      function clearSession() {
+        currentUser = null;
 
-  // GPS
-  navigator.geolocation.getCurrentPosition(
-    async function(pos) {
-      lat = pos.coords.latitude;
-      lng = pos.coords.longitude;
+        currentCutoff = null;
 
-      gpsEl.innerHTML = "📍 GPS: " + lat.toFixed(6) + ", " + lng.toFixed(6);
-
-      resolvedAddress = await fetchAddressFromCoords(lat, lng);
-
-      refreshPendingStatus();
-    },
-    function(err) {
-      console.error("GPS error:", err);
-      gpsEl.innerHTML = "❌ GPS unavailable";
-      refreshPendingStatus();
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    }
-  );
-
-  async function startCamera() {
-    if (cameraActive) return true;
-
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false
-      });
-
-      video.srcObject = stream;
-      video.style.display = "block";
-      canvas.style.display = "none";
-
-      await new Promise((resolve) => {
-        video.onloadedmetadata = () => resolve();
-      });
-
-      await video.play();
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      cameraActive = true;
-      return true;
-
-    } catch (err) {
-      console.error("Camera error:", err);
-      Swal.fire("Unable to access camera. Please allow camera permission and try again.");
-      return false;
-    }
-  }
-
-  function stopCamera() {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      stream = null;
-    }
-
-    video.srcObject = null;
-    cameraActive = false;
-  }
-
-  selfieBtn.onclick = async function () {
-    const ctx = canvas.getContext("2d");
-
-    if (!cameraActive) {
-      const started = await startCamera();
-      if (!started) return;
-
-      selfieBtn.innerText = "📸 Capture";
-      selfieBtn.classList.remove("selfie-start", "selfie-retake");
-      selfieBtn.classList.add("selfie-capture");
-      return;
-    }
-
-    if (cameraActive && !capturedImage) {
-      if (
-        !video.srcObject ||
-        video.readyState < 2 ||
-        !video.videoWidth ||
-        !video.videoHeight
-      ) {
-        Swal.fire("Camera is still loading. Please wait a moment and try again.");
-        return;
+        sessionStorage.removeItem(SESSION_KEY);
       }
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      /**********************************************************
+       * VIEW NAVIGATION
+       **********************************************************/
 
-      video.style.display = "none";
-      canvas.style.display = "block";
+      function showLoginView() {
+        document.getElementById("loginView").classList.remove("hidden");
 
-      capturedImage = canvas.toDataURL("image/jpeg", 0.9);
+        document.getElementById("dashboardView").classList.add("hidden");
 
-      stopCamera();
+        document.getElementById("attendanceView").classList.add("hidden");
+      }
 
-      selfieBtn.innerText = "🔄 Retake Selfie";
-      selfieBtn.classList.remove("selfie-capture");
-      selfieBtn.classList.add("selfie-retake");
-      return;
-    }
+      function showDashboardView() {
+        if (!currentUser) {
+          showLoginView();
 
-    if (capturedImage) {
-      capturedImage = "";
-      canvas.style.display = "none";
-
-      const started = await startCamera();
-      if (!started) return;
-
-      selfieBtn.innerText = "📸 Capture";
-      selfieBtn.classList.remove("selfie-retake");
-      selfieBtn.classList.add("selfie-capture");
-    }
-  };
-
-  function clearForm() {
-    document.getElementById("employeeId").value = "";
-    document.getElementById("site").value = "";
-    document.getElementById("notes").value = "";
-
-    capturedImage = "";
-
-    document.querySelectorAll('input[name="shift"]').forEach(r => {
-      r.checked = false;
-    });
-
-    selfieBtn.innerText = "📷 Take Selfie";
-    selfieBtn.classList.remove("selfie-capture", "selfie-retake");
-    selfieBtn.classList.add("selfie-start");
-
-    canvas.style.display = "none";
-    video.style.display = "none";
-
-    stopCamera();
-  }
-
-  function setSubmittingState(submitting) {
-    isSubmitting = submitting;
-    clockInBtn.disabled = submitting;
-    clockOutBtn.disabled = submitting;
-    selfieBtn.disabled = submitting;
-  }
-
-  function addWatermark(canvas, lines) {
-    const ctx = canvas.getContext("2d");
-    const boxHeight = 80;
-    const boxY = canvas.height - boxHeight - 10;
-
-    ctx.fillStyle = "rgba(0,0,0,0.65)";
-    ctx.fillRect(10, boxY, canvas.width - 20, boxHeight);
-
-    ctx.fillStyle = "white";
-    ctx.font = "22px Arial";
-    ctx.fillText(lines[0], 20, boxY + 28);
-
-    ctx.font = "18px Arial";
-    ctx.fillText(lines[1], 20, boxY + 58);
-
-    return canvas.toDataURL("image/jpeg", 0.9);
-  }
-
-  function buildPayload(clockType) {
-    const emp = document.getElementById("employeeId").value.trim();
-    const site = document.getElementById("site").value.trim();
-    const notes = document.getElementById("notes").value.trim();
-    const shift = document.querySelector('input[name="shift"]:checked')?.value;
-
-    const clientTimestampText = getClientTimestampText();
-    const clientTimestampFile = getClientTimestampFile();
-
-    return {
-      recordId: createRecordId(),
-      clientTimestampText: clientTimestampText,
-      clientTimestampFile: clientTimestampFile,
-      employeeId: emp,
-      shift: shift,
-      clockType: clockType,
-      site: site,
-      notes: notes,
-      lat: lat,
-      lng: lng,
-      address: resolvedAddress || "",
-      image: addWatermark(canvas, buildWatermarkLines(emp, site, clientTimestampText))
-    };
-  }
-
-  async function sendPayload(payload) {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-
-    return response.json();
-  }
-
-  async function syncPendingAttendance(showSuccessToast = false) {
-    if (!navigator.onLine) {
-      await refreshPendingStatus();
-      return;
-    }
-
-    const pending = await getPendingSubmissions();
-
-    if (!pending.length) {
-      await refreshPendingStatus();
-      return;
-    }
-
-    setSyncStatus(`🔄 Syncing ${pending.length} pending entr${pending.length === 1 ? "y" : "ies"}...`, "#1565c0");
-
-    for (const item of pending) {
-      try {
-        const res = await sendPayload(item);
-
-        if (res.status === "success") {
-          await deletePendingSubmission(item.recordId);
-          continue;
+          return;
         }
 
-        // Business-rule failures stay pending for manual review
-        console.error("Pending sync blocked:", res.message);
-        break;
+        document.getElementById("loginView").classList.add("hidden");
 
-      } catch (err) {
-        console.error("Pending sync failed:", err);
-        break;
-      }
-    }
+        document.getElementById("dashboardView").classList.remove("hidden");
 
-    await refreshPendingStatus();
+        document.getElementById("attendanceView").classList.add("hidden");
 
-    if (showSuccessToast) {
-      const count = await getPendingCount();
-      if (count === 0) {
-        Swal.fire({
-          icon: "success",
-          title: "Pending attendance synced",
-          timer: 1200,
-          showConfirmButton: false
-        });
-      }
-    }
-  }
-
-  async function submitAttendance(clockType) {
-    if (isSubmitting) return;
-    setSubmittingState(true);
-
-    const emp = document.getElementById("employeeId").value.trim();
-    const shift = document.querySelector('input[name="shift"]:checked')?.value;
-
-    if (!emp) {
-      setSubmittingState(false);
-      Swal.fire("Enter Employee ID");
-      return;
-    }
-
-    if (!shift) {
-      setSubmittingState(false);
-      Swal.fire("Please select a shift");
-      return;
-    }
-
-    if (!capturedImage) {
-      setSubmittingState(false);
-      Swal.fire("Please capture selfie");
-      return;
-    }
-
-    const payload = buildPayload(clockType);
-    const action = clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
-
-    Swal.fire({
-      title: emp + " " + action + "...",
-      text: "Please wait",
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); }
-    });
-
-    try {
-      if (!navigator.onLine) {
-        await savePendingSubmission(payload);
-        setSubmittingState(false);
-        clearForm();
-        await refreshPendingStatus();
-
-        Swal.fire({
-          icon: "info",
-          title: "Saved offline",
-          text: "Attendance was saved on this device and will sync automatically when internet returns."
-        });
-        return;
+        updateDashboardHeader();
       }
 
-      const res = await sendPayload(payload);
+      function showAttendanceView() {
+        if (!currentUser) {
+          showLoginView();
 
-      setSubmittingState(false);
+          return;
+        }
 
-      if (res.status === "error") {
-        Swal.fire(res.message);
-        return;
+        document.getElementById("loginView").classList.add("hidden");
+
+        document.getElementById("dashboardView").classList.add("hidden");
+
+        document.getElementById("attendanceView").classList.remove("hidden");
+
+        updateAttendanceHeader();
+
+        prefillShiftFromDashboard();
       }
 
-      Swal.fire({
-        icon: "success",
-        title: emp + " Attendance Saved",
-        timer: 1500,
-        showConfirmButton: false
-      });
+      /**********************************************************
+       * LOGIN
+       **********************************************************/
 
-      clearForm();
-      await refreshPendingStatus();
+      async function login() {
+        const username = document.getElementById("loginUsername").value.trim();
 
-    } catch (err) {
-      console.error("Submit error:", err);
+        const password = document.getElementById("loginPassword").value.trim();
 
-      try {
-        await savePendingSubmission(payload);
-        setSubmittingState(false);
-        clearForm();
-        await refreshPendingStatus();
+        if (!username) {
+          Swal.fire("Please enter your Employee ID.");
 
-        Swal.fire({
-          icon: "warning",
-          title: "Saved offline",
-          text: "Upload failed, but attendance was saved on this device and will sync automatically later."
-        });
-      } catch (dbErr) {
-        setSubmittingState(false);
-        console.error("Offline save error:", dbErr);
-        Swal.fire("Failed to save attendance. Please try again.");
-      }
-    }
-  }
+          return;
+        }
 
-  window.addEventListener("online", () => {
-    refreshPendingStatus();
-    syncPendingAttendance(true);
-  });
+        if (!password) {
+          Swal.fire("Please enter your password.");
 
-  window.addEventListener("offline", () => {
-    refreshPendingStatus();
-  });
+          return;
+        }
 
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./service-worker.js").then(registration => {
-      registration.addEventListener("updatefound", () => {
-        const newWorker = registration.installing;
+        const loginBtn = document.getElementById("loginBtn");
 
-        newWorker.addEventListener("statechange", () => {
-          if (
-            newWorker.state === "installed" &&
-            navigator.serviceWorker.controller
-          ) {
+        loginBtn.disabled = true;
+
+        loginBtn.innerText = "Signing in...";
+
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+
+            body: JSON.stringify({
+              action: "login",
+
+              username: username,
+
+              password: password,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
             Swal.fire({
-              icon: "info",
-              title: "Update Available",
-              text: "A new version of K5Tech Attendance is available.",
-              confirmButtonText: "Update Now"
-            }).then(() => {
-              newWorker.postMessage({ action: "skipWaiting" });
+              icon: "error",
+
+              title: "Login Failed",
+
+              text: data.message || "Invalid username or password.",
+            });
+
+            return;
+          }
+
+          saveSession(data.user);
+
+          document.getElementById("loginUsername").value = "";
+
+          document.getElementById("loginPassword").value = "";
+
+          showDashboardView();
+
+          await loadDashboard();
+        } catch (err) {
+          console.error("Login error:", err);
+
+          Swal.fire({
+            icon: "error",
+
+            title: "Connection Error",
+
+            text: "Unable to connect to the attendance server.",
+          });
+        } finally {
+          loginBtn.disabled = false;
+
+          loginBtn.innerText = "Login";
+        }
+      }
+
+      /**********************************************************
+       * LOGOUT
+       **********************************************************/
+
+      function logout() {
+        Swal.fire({
+          icon: "question",
+
+          title: "Logout?",
+
+          text: "Are you sure you want to logout?",
+
+          showCancelButton: true,
+
+          confirmButtonText: "Logout",
+
+          cancelButtonText: "Cancel",
+        }).then((result) => {
+          if (!result.isConfirmed) {
+            return;
+          }
+
+          stopCamera();
+
+          clearSession();
+
+          clearAttendanceForm();
+
+          showLoginView();
+        });
+      }
+
+      /**********************************************************
+       * DASHBOARD HEADER
+       **********************************************************/
+
+      function updateDashboardHeader() {
+        if (!currentUser) {
+          return;
+        }
+
+        document.getElementById("welcomeName").innerText =
+          "Welcome, " + currentUser.name;
+
+        document.getElementById("dashboardEmployeeId").innerText =
+          "Employee ID: " + currentUser.employeeId;
+      }
+
+      /**********************************************************
+       * ATTENDANCE HEADER
+       **********************************************************/
+
+      function updateAttendanceHeader() {
+        if (!currentUser) {
+          return;
+        }
+
+        document.getElementById("attendanceEmployeeName").innerText =
+          currentUser.name;
+
+        document.getElementById("attendanceEmployeeId").innerText =
+          "Employee ID: " + currentUser.employeeId;
+      }
+
+      /**********************************************************
+       * LOAD DASHBOARD
+       **********************************************************/
+
+      async function loadDashboard() {
+        if (!currentUser) {
+          showLoginView();
+
+          return;
+        }
+
+        const refreshBtn = document.getElementById("refreshDashboardBtn");
+
+        refreshBtn.disabled = true;
+
+        refreshBtn.innerText = "⏳ Loading...";
+
+        const statusEl = document.getElementById("dashboardStatus");
+
+        statusEl.innerText = "Loading attendance records...";
+
+        try {
+          /*
+           * First get current cutoff.
+           */
+
+          const cutoffResponse = await fetch(
+            API_URL + "?action=getCutoffPeriod",
+          );
+
+          const cutoffData = await cutoffResponse.json();
+
+          if (cutoffData.status !== "success") {
+            throw new Error(
+              cutoffData.message || "Unable to load cutoff period.",
+            );
+          }
+
+          currentCutoff = cutoffData.cutoff;
+
+          updateCutoffDisplay();
+
+          /*
+           * Then get dashboard records.
+           */
+
+          const dashboardUrl =
+            API_URL +
+            "?action=getDashboardAttendance" +
+            "&employeeId=" +
+            encodeURIComponent(currentUser.employeeId);
+
+          const dashboardResponse = await fetch(dashboardUrl);
+
+          const dashboardData = await dashboardResponse.json();
+
+          if (dashboardData.status !== "success") {
+            throw new Error(
+              dashboardData.message || "Unable to load attendance.",
+            );
+          }
+
+          renderAttendanceTable(dashboardData.attendance || []);
+
+          statusEl.innerText =
+            "Last updated: " +
+            new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+        } catch (err) {
+          console.error("Dashboard error:", err);
+
+          document.getElementById("attendanceTableBody").innerHTML = `
+
+              <tr>
+
+                <td
+                  colspan="5"
+                  class="dashboard-status"
+                >
+
+                  ❌ Unable to load attendance records.
+
+                </td>
+
+              </tr>
+
+            `;
+
+          statusEl.innerText = err.message || "Unable to load dashboard.";
+        } finally {
+          refreshBtn.disabled = false;
+
+          refreshBtn.innerText = "🔄 Refresh";
+        }
+      }
+
+      /**********************************************************
+       * UPDATE CUTOFF DISPLAY
+       **********************************************************/
+
+      function updateCutoffDisplay() {
+        if (!currentCutoff) {
+          document.getElementById("cutoffDisplay").innerText = "Unavailable";
+
+          return;
+        }
+
+        document.getElementById("cutoffDisplay").innerText =
+          formatDateForDisplay(currentCutoff.from) +
+          " – " +
+          formatDateForDisplay(currentCutoff.to);
+      }
+
+      /**********************************************************
+       * RENDER ATTENDANCE TABLE
+       **********************************************************/
+      /**********************************************************
+       * RENDER ATTENDANCE TABLE
+       **********************************************************/
+
+      function renderAttendanceTable(records) {
+        const tbody = document.getElementById("attendanceTableBody");
+
+        if (!records || !records.length) {
+          tbody.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="5"
+          class="dashboard-status"
+        >
+
+          No dates available for
+          the current cutoff.
+
+        </td>
+
+      </tr>
+
+    `;
+
+          return;
+        }
+
+        const todayKey = getLocalDateKey(new Date());
+
+        tbody.innerHTML = records
+          .map((record) => {
+            /*
+             * Determine the day of the week.
+             *
+             * 0 = Sunday
+             * 6 = Saturday
+             */
+
+            const dayOfWeek = getDayOfWeek(record.date);
+
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+            const isToday = record.date === todayKey;
+
+            /*
+             * Today gets the blue highlight.
+             * Weekend gets the light grey background.
+             */
+
+            let rowClass = "";
+
+            if (isToday) {
+              rowClass = "today";
+            } else if (isWeekend) {
+              rowClass = "weekend";
+            }
+
+            return `
+
+            <tr
+              class="${rowClass}"
+            >
+
+              <td
+                class="date-cell"
+              >
+
+                ${formatDateWithDay(record.date)}
+
+              </td>
+
+
+              <td
+                class="${record.dayIn ? "time-recorded" : "time-missing"}"
+              >
+
+                ${record.dayIn ? formatTime12Hour(record.dayIn) : "—"}
+
+              </td>
+
+
+              <td
+                class="${record.dayOut ? "time-recorded" : "time-missing"}"
+              >
+
+                ${record.dayOut ? formatTime12Hour(record.dayOut) : "—"}
+
+              </td>
+
+
+              <td
+                class="${record.nightIn ? "time-recorded" : "time-missing"}"
+              >
+
+                ${record.nightIn ? formatTime12Hour(record.nightIn) : "—"}
+
+              </td>
+
+
+              <td
+                class="${record.nightOut ? "time-recorded" : "time-missing"}"
+              >
+
+              ${record.nightOut ? formatTime12Hour(record.nightOut) : "—"}
+
+              </td>
+
+            </tr>
+
+          `;
+          })
+          .join("");
+      }
+
+      /**********************************************************
+       * DATE HELPERS
+       **********************************************************/
+
+      function getLocalDateKey(date) {
+        const year = date.getFullYear();
+
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return year + "-" + month + "-" + day;
+      }
+
+      /**********************************************************
+       * GET DAY OF WEEK
+       *
+       * Returns:
+       * 0 = Sunday
+       * 1 = Monday
+       * ...
+       * 6 = Saturday
+       **********************************************************/
+
+      function getDayOfWeek(dateKey) {
+        if (!dateKey) {
+          return -1;
+        }
+
+        const parts = dateKey.split("-");
+
+        if (parts.length !== 3) {
+          return -1;
+        }
+
+        const date = new Date(
+          Number(parts[0]),
+
+          Number(parts[1]) - 1,
+
+          Number(parts[2]),
+        );
+
+        return date.getDay();
+      }
+
+      /**********************************************************
+       * FORMAT DATE WITH DAY
+       *
+       * Example:
+       *
+       * 2026-07-11
+       *
+       * becomes:
+       *
+       * Jul 11 · Sat
+       **********************************************************/
+
+      function formatDateWithDay(dateKey) {
+        if (!dateKey) {
+          return "";
+        }
+
+        const parts = dateKey.split("-");
+
+        if (parts.length !== 3) {
+          return dateKey;
+        }
+
+        const date = new Date(
+          Number(parts[0]),
+
+          Number(parts[1]) - 1,
+
+          Number(parts[2]),
+        );
+
+        const dateText = date.toLocaleDateString(
+          "en-US",
+
+          {
+            month: "short",
+
+            day: "numeric",
+          },
+        );
+
+        const dayText = date.toLocaleDateString(
+          "en-US",
+
+          {
+            weekday: "short",
+          },
+        );
+
+        return `
+
+    ${dateText}
+
+    <span class="date-day">
+
+      · ${dayText}
+
+    </span>
+
+  `;
+      }
+
+      function formatDateForDisplay(dateKey) {
+        if (!dateKey) {
+          return "";
+        }
+
+        const parts = dateKey.split("-");
+
+        if (parts.length !== 3) {
+          return dateKey;
+        }
+
+        const date = new Date(
+          Number(parts[0]),
+          Number(parts[1]) - 1,
+          Number(parts[2]),
+        );
+
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+      }
+
+      /**********************************************************
+       * FORMAT TIME TO 12-HOUR AM/PM
+       *
+       * Examples:
+       *
+       * 09:00     → 9:00 AM
+       * 16:40     → 4:40 PM
+       * 00:30     → 12:30 AM
+       * 12:00     → 12:00 PM
+       **********************************************************/
+
+      function formatTime12Hour(timeValue) {
+        if (!timeValue) {
+          return "";
+        }
+
+        /*
+         * If the backend already returns
+         * a Date/time string, try to extract
+         * the HH:mm portion.
+         */
+
+        const timeString = String(timeValue).trim();
+
+        /*
+         * Match:
+         *
+         * HH:mm
+         * HH:mm:ss
+         */
+
+        const match = timeString.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+
+        if (!match) {
+          /*
+           * If the value is already in a format
+           * such as "4:40 PM", leave it unchanged.
+           */
+
+          return timeString;
+        }
+
+        let hours = Number(match[1]);
+
+        const minutes = match[2];
+
+        const period = hours >= 12 ? "PM" : "AM";
+
+        /*
+         * Convert 00 hours to 12 AM.
+         */
+
+        if (hours === 0) {
+          hours = 12;
+        } else if (hours > 12) {
+          /*
+           * Convert 13–23 to 1–11 PM.
+           */
+          hours -= 12;
+        }
+
+        return `${hours}:${minutes} ${period}`;
+      }
+
+      /**********************************************************
+       * SMART SHIFT PREFILL
+       *
+       * Uses today's dashboard record.
+       *
+       * If today's Day In exists and Day Out is missing:
+       *   → Day
+       *
+       * If today's Night In exists and Night Out is missing:
+       *   → Night
+       *
+       * Otherwise:
+       *   → no automatic selection
+       *
+       * The user can still manually select a shift.
+       **********************************************************/
+
+      function prefillShiftFromDashboard() {
+        clearShiftSelection();
+
+        if (!currentCutoff || !currentCutoff.dates) {
+          return;
+        }
+
+        const todayKey = getLocalDateKey(new Date());
+
+        if (!currentCutoff.dates.includes(todayKey)) {
+          return;
+        }
+
+        /*
+         * Re-query dashboard data to get
+         * the current state.
+         *
+         * This avoids relying on table DOM.
+         */
+
+        loadShiftRecommendation(todayKey);
+      }
+
+      async function loadShiftRecommendation(todayKey) {
+        if (!currentUser) {
+          return;
+        }
+
+        try {
+          const url =
+            API_URL +
+            "?action=getDashboardAttendance" +
+            "&employeeId=" +
+            encodeURIComponent(currentUser.employeeId);
+
+          const response = await fetch(url);
+
+          const data = await response.json();
+
+          if (data.status !== "success") {
+            return;
+          }
+
+          const todayRecord = (data.attendance || []).find(
+            (record) => record.date === todayKey,
+          );
+
+          if (!todayRecord) {
+            return;
+          }
+
+          /*
+           * Day started but not completed.
+           */
+
+          if (todayRecord.dayIn && !todayRecord.dayOut) {
+            selectShift("Day");
+
+            setShiftHint(
+              "Day Shift automatically selected based on today's existing Clock-In.",
+            );
+
+            return;
+          }
+
+          /*
+           * Night started but not completed.
+           */
+
+          if (todayRecord.nightIn && !todayRecord.nightOut) {
+            selectShift("Night");
+
+            setShiftHint(
+              "Night Shift automatically selected based on today's existing Clock-In.",
+            );
+
+            return;
+          }
+
+          /*
+           * No active shift.
+           */
+
+          setShiftHint("Select the shift you are attending.");
+        } catch (err) {
+          console.error("Shift recommendation error:", err);
+        }
+      }
+
+      function selectShift(shift) {
+        const radio = document.querySelector(
+          `input[name="shift"][value="${shift}"]`,
+        );
+
+        if (!radio) {
+          return;
+        }
+
+        radio.checked = true;
+
+        document
+          .getElementById(
+            shift === "Day" ? "dayShiftOption" : "nightShiftOption",
+          )
+          .classList.add("auto-selected");
+      }
+
+      function clearShiftSelection() {
+        document.querySelectorAll('input[name="shift"]').forEach((radio) => {
+          radio.checked = false;
+        });
+
+        document
+          .getElementById("dayShiftOption")
+          .classList.remove("auto-selected");
+
+        document
+          .getElementById("nightShiftOption")
+          .classList.remove("auto-selected");
+
+        setShiftHint("");
+      }
+
+      function setShiftHint(text) {
+        document.getElementById("shiftHint").innerText = text || "";
+      }
+
+      /**********************************************************
+       * ATTENDANCE SYSTEM
+       *
+       * Existing functionality preserved.
+       **********************************************************/
+
+      let lat = "";
+
+      let lng = "";
+
+      let resolvedAddress = "";
+
+      let stream = null;
+
+      let capturedImage = "";
+
+      let cameraActive = false;
+
+      let isSubmitting = false;
+
+      const DB_NAME = "k5tech-attendance-db";
+
+      const DB_VERSION = 1;
+
+      const STORE_NAME = "pendingAttendance";
+
+      const gpsEl = document.getElementById("gps");
+
+      const video = document.getElementById("camera");
+
+      const canvas = document.getElementById("selfieCanvas");
+
+      const selfieBtn = document.getElementById("selfieBtn");
+
+      const clockInBtn = document.getElementById("clockInBtn");
+
+      const clockOutBtn = document.getElementById("clockOutBtn");
+
+      const syncEl = document.getElementById("syncStatus");
+
+      function setSyncStatus(text, color) {
+        syncEl.innerText = text;
+
+        syncEl.style.color = color || "#666";
+      }
+
+      /**********************************************************
+       * INDEXED DB
+       **********************************************************/
+
+      function openDb() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+          request.onupgradeneeded = function (event) {
+            const db = event.target.result;
+
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME, {
+                keyPath: "recordId",
+              });
+            }
+          };
+
+          request.onsuccess = function () {
+            resolve(request.result);
+          };
+
+          request.onerror = function () {
+            reject(request.error);
+          };
+        });
+      }
+
+      async function savePendingSubmission(payload) {
+        const db = await openDb();
+
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+
+          const store = tx.objectStore(STORE_NAME);
+
+          store.put(payload);
+
+          tx.oncomplete = () => resolve();
+
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      async function getPendingSubmissions() {
+        const db = await openDb();
+
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE_NAME, "readonly");
+
+          const store = tx.objectStore(STORE_NAME);
+
+          const request = store.getAll();
+
+          request.onsuccess = () => {
+            const items = request.result || [];
+
+            items.sort((a, b) =>
+              (a.clientTimestampFile || "").localeCompare(
+                b.clientTimestampFile || "",
+              ),
+            );
+
+            resolve(items);
+          };
+
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function deletePendingSubmission(recordId) {
+        const db = await openDb();
+
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+
+          const store = tx.objectStore(STORE_NAME);
+
+          store.delete(recordId);
+
+          tx.oncomplete = () => resolve();
+
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      async function getPendingCount() {
+        const items = await getPendingSubmissions();
+
+        return items.length;
+      }
+
+      async function refreshPendingStatus() {
+        const count = await getPendingCount();
+
+        if (!navigator.onLine) {
+          setSyncStatus(
+            `🟠 Offline${count ? " • Pending sync: " + count : ""}`,
+
+            "#b26a00",
+          );
+
+          return;
+        }
+
+        if (count > 0) {
+          setSyncStatus(
+            `🟡 Online • Pending sync: ${count}`,
+
+            "#9a7b00",
+          );
+        } else {
+          setSyncStatus(
+            "🟢 Online • All synced",
+
+            "#2e7d32",
+          );
+        }
+      }
+
+      function createRecordId() {
+        return (
+          "att_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8)
+        );
+      }
+
+      function formatCoord(value) {
+        return value === "" || value === null || value === undefined
+          ? ""
+          : Number(value).toFixed(6);
+      }
+
+      function getLocationText() {
+        if (resolvedAddress) {
+          return resolvedAddress.length > 60
+            ? resolvedAddress.slice(0, 60) + "..."
+            : resolvedAddress;
+        }
+
+        if (lat !== "" && lng !== "") {
+          return `GPS: ${formatCoord(lat)}, ${formatCoord(lng)}`;
+        }
+
+        return "GPS unavailable";
+      }
+
+      function pad2(num) {
+        return String(num).padStart(2, "0");
+      }
+
+      function getClientTimestampText() {
+        const now = new Date();
+
+        const yyyy = now.getFullYear();
+
+        const mm = pad2(now.getMonth() + 1);
+
+        const dd = pad2(now.getDate());
+
+        const hh = pad2(now.getHours());
+
+        const mi = pad2(now.getMinutes());
+
+        const ss = pad2(now.getSeconds());
+
+        return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+      }
+
+      function getClientTimestampFile() {
+        const now = new Date();
+
+        const yyyy = now.getFullYear();
+
+        const mm = pad2(now.getMonth() + 1);
+
+        const dd = pad2(now.getDate());
+
+        const hh = pad2(now.getHours());
+
+        const mi = pad2(now.getMinutes());
+
+        return `${yyyy}-${mm}-${dd}_${hh}-${mi}`;
+      }
+
+      function buildWatermarkLines(emp, site, timestampText) {
+        const line1 = `${emp} | ${timestampText} | ${site || "-"}`;
+
+        const line2 = getLocationText();
+
+        return [line1, line2];
+      }
+
+      async function fetchAddressFromCoords(lat, lng) {
+        try {
+          const url = `${API_URL}?action=reverseGeocode&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
+
+          const res = await fetch(url);
+
+          const data = await res.json();
+
+          if (data.status === "success" && data.address) {
+            return data.address;
+          }
+
+          return "";
+        } catch (err) {
+          console.error("Address fetch error:", err);
+
+          return "";
+        }
+      }
+
+      /**********************************************************
+       * GPS
+       **********************************************************/
+
+      function initializeGPS() {
+        if (!navigator.geolocation) {
+          gpsEl.innerHTML = "❌ GPS not supported";
+
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          async function (pos) {
+            lat = pos.coords.latitude;
+
+            lng = pos.coords.longitude;
+
+            gpsEl.innerHTML =
+              "📍 GPS: " + lat.toFixed(6) + ", " + lng.toFixed(6);
+
+            resolvedAddress = await fetchAddressFromCoords(lat, lng);
+
+            refreshPendingStatus();
+          },
+
+          function (err) {
+            console.error("GPS error:", err);
+
+            gpsEl.innerHTML = "❌ GPS unavailable";
+
+            refreshPendingStatus();
+          },
+
+          {
+            enableHighAccuracy: true,
+
+            timeout: 10000,
+
+            maximumAge: 0,
+          },
+        );
+      }
+
+      /**********************************************************
+       * CAMERA
+       **********************************************************/
+
+      async function startCamera() {
+        if (cameraActive) {
+          return true;
+        }
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: "user",
+            },
+
+            audio: false,
+          });
+
+          video.srcObject = stream;
+
+          video.style.display = "block";
+
+          canvas.style.display = "none";
+
+          await new Promise((resolve) => {
+            video.onloadedmetadata = () => resolve();
+          });
+
+          await video.play();
+
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          cameraActive = true;
+
+          return true;
+        } catch (err) {
+          console.error("Camera error:", err);
+
+          Swal.fire(
+            "Unable to access camera. Please allow camera permission and try again.",
+          );
+
+          return false;
+        }
+      }
+
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+
+          stream = null;
+        }
+
+        video.srcObject = null;
+
+        cameraActive = false;
+      }
+
+      selfieBtn.onclick = async function () {
+        const ctx = canvas.getContext("2d");
+
+        if (!cameraActive) {
+          const started = await startCamera();
+
+          if (!started) {
+            return;
+          }
+
+          selfieBtn.innerText = "📸 Capture";
+
+          selfieBtn.classList.remove("selfie-start", "selfie-retake");
+
+          selfieBtn.classList.add("selfie-capture");
+
+          return;
+        }
+
+        if (cameraActive && !capturedImage) {
+          if (
+            !video.srcObject ||
+            video.readyState < 2 ||
+            !video.videoWidth ||
+            !video.videoHeight
+          ) {
+            Swal.fire(
+              "Camera is still loading. Please wait a moment and try again.",
+            );
+
+            return;
+          }
+
+          canvas.width = video.videoWidth;
+
+          canvas.height = video.videoHeight;
+
+          ctx.drawImage(
+            video,
+
+            0,
+
+            0,
+
+            canvas.width,
+
+            canvas.height,
+          );
+
+          video.style.display = "none";
+
+          canvas.style.display = "block";
+
+          capturedImage = canvas.toDataURL("image/jpeg", 0.9);
+
+          stopCamera();
+
+          selfieBtn.innerText = "🔄 Retake Selfie";
+
+          selfieBtn.classList.remove("selfie-capture");
+
+          selfieBtn.classList.add("selfie-retake");
+
+          return;
+        }
+
+        if (capturedImage) {
+          capturedImage = "";
+
+          canvas.style.display = "none";
+
+          const started = await startCamera();
+
+          if (!started) {
+            return;
+          }
+
+          selfieBtn.innerText = "📸 Capture";
+
+          selfieBtn.classList.remove("selfie-retake");
+
+          selfieBtn.classList.add("selfie-capture");
+        }
+      };
+
+      /**********************************************************
+       * CLEAR ATTENDANCE FORM
+       **********************************************************/
+
+      function clearAttendanceForm() {
+        document.getElementById("site").value = "";
+
+        document.getElementById("notes").value = "";
+
+        capturedImage = "";
+
+        clearShiftSelection();
+
+        selfieBtn.innerText = "📷 Take Selfie";
+
+        selfieBtn.classList.remove("selfie-capture", "selfie-retake");
+
+        selfieBtn.classList.add("selfie-start");
+
+        canvas.style.display = "none";
+
+        video.style.display = "none";
+
+        stopCamera();
+      }
+
+      function setSubmittingState(submitting) {
+        isSubmitting = submitting;
+
+        clockInBtn.disabled = submitting;
+
+        clockOutBtn.disabled = submitting;
+
+        selfieBtn.disabled = submitting;
+      }
+
+      function addWatermark(canvas, lines) {
+        const ctx = canvas.getContext("2d");
+
+        const boxHeight = 80;
+
+        const boxY = canvas.height - boxHeight - 10;
+
+        ctx.fillStyle = "rgba(0,0,0,0.65)";
+
+        ctx.fillRect(
+          10,
+
+          boxY,
+
+          canvas.width - 20,
+
+          boxHeight,
+        );
+
+        ctx.fillStyle = "white";
+
+        ctx.font = "22px Arial";
+
+        ctx.fillText(
+          lines[0],
+
+          20,
+
+          boxY + 28,
+        );
+
+        ctx.font = "18px Arial";
+
+        ctx.fillText(
+          lines[1],
+
+          20,
+
+          boxY + 58,
+        );
+
+        return canvas.toDataURL("image/jpeg", 0.9);
+      }
+
+      /**********************************************************
+       * BUILD PAYLOAD
+       *
+       * IMPORTANT:
+       * Employee ID now comes from the authenticated user.
+       **********************************************************/
+
+      function buildPayload(clockType) {
+        if (!currentUser) {
+          throw new Error("No authenticated user.");
+        }
+
+        const emp = currentUser.employeeId;
+
+        const site = document.getElementById("site").value.trim();
+
+        const notes = document.getElementById("notes").value.trim();
+
+        const shift = document.querySelector(
+          'input[name="shift"]:checked',
+        )?.value;
+
+        const clientTimestampText = getClientTimestampText();
+
+        const clientTimestampFile = getClientTimestampFile();
+
+        return {
+          recordId: createRecordId(),
+
+          clientTimestampText: clientTimestampText,
+
+          clientTimestampFile: clientTimestampFile,
+
+          employeeId: emp,
+
+          shift: shift,
+
+          clockType: clockType,
+
+          site: site,
+
+          notes: notes,
+
+          lat: lat,
+
+          lng: lng,
+
+          address: resolvedAddress || "",
+
+          image: addWatermark(
+            canvas,
+
+            buildWatermarkLines(
+              emp,
+
+              site,
+
+              clientTimestampText,
+            ),
+          ),
+        };
+      }
+
+      async function sendPayload(payload) {
+        const response = await fetch(
+          API_URL,
+
+          {
+            method: "POST",
+
+            body: JSON.stringify(payload),
+          },
+        );
+
+        return response.json();
+      }
+
+      /**********************************************************
+       * SYNC PENDING ATTENDANCE
+       **********************************************************/
+
+      async function syncPendingAttendance(showSuccessToast = false) {
+        if (!navigator.onLine) {
+          await refreshPendingStatus();
+
+          return;
+        }
+
+        const pending = await getPendingSubmissions();
+
+        if (!pending.length) {
+          await refreshPendingStatus();
+
+          return;
+        }
+
+        setSyncStatus(
+          `🔄 Syncing ${pending.length} pending entr${
+            pending.length === 1 ? "y" : "ies"
+          }...`,
+
+          "#1565c0",
+        );
+
+        for (const item of pending) {
+          try {
+            const res = await sendPayload(item);
+
+            if (res.status === "success") {
+              await deletePendingSubmission(item.recordId);
+
+              continue;
+            }
+
+            console.error("Pending sync blocked:", res.message);
+
+            break;
+          } catch (err) {
+            console.error("Pending sync failed:", err);
+
+            break;
+          }
+        }
+
+        await refreshPendingStatus();
+
+        if (showSuccessToast) {
+          const count = await getPendingCount();
+
+          if (count === 0) {
+            Swal.fire({
+              icon: "success",
+
+              title: "Pending attendance synced",
+
+              timer: 1200,
+
+              showConfirmButton: false,
             });
           }
+        }
+      }
+
+      /**********************************************************
+       * SUBMIT ATTENDANCE
+       **********************************************************/
+
+      async function submitAttendance(clockType) {
+        if (isSubmitting) {
+          return;
+        }
+
+        setSubmittingState(true);
+
+        if (!currentUser) {
+          setSubmittingState(false);
+
+          Swal.fire("Your session has expired. Please login again.");
+
+          showLoginView();
+
+          return;
+        }
+
+        const shift = document.querySelector(
+          'input[name="shift"]:checked',
+        )?.value;
+
+        if (!shift) {
+          setSubmittingState(false);
+
+          Swal.fire("Please select a shift");
+
+          return;
+        }
+
+        if (!capturedImage) {
+          setSubmittingState(false);
+
+          Swal.fire("Please capture selfie");
+
+          return;
+        }
+
+        const payload = buildPayload(clockType);
+
+        const action =
+          clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
+
+        Swal.fire({
+          title: currentUser.employeeId + " " + action + "...",
+
+          text: "Please wait",
+
+          allowOutsideClick: false,
+
+          didOpen: () => {
+            Swal.showLoading();
+          },
         });
+
+        try {
+          if (!navigator.onLine) {
+            await savePendingSubmission(payload);
+
+            setSubmittingState(false);
+
+            clearAttendanceForm();
+
+            await refreshPendingStatus();
+
+            Swal.fire({
+              icon: "info",
+
+              title: "Saved offline",
+
+              text: "Attendance was saved on this device and will sync automatically when internet returns.",
+            });
+
+            return;
+          }
+
+          const res = await sendPayload(payload);
+
+          setSubmittingState(false);
+
+          if (res.status === "error") {
+            Swal.fire(res.message);
+
+            return;
+          }
+
+          Swal.fire({
+            icon: "success",
+
+            title: currentUser.name + " Attendance Saved",
+
+            timer: 1500,
+
+            showConfirmButton: false,
+          });
+
+          clearAttendanceForm();
+
+          await refreshPendingStatus();
+
+          /*
+           * Refresh dashboard after successful attendance
+           * so the user immediately sees the new record.
+           */
+
+          await loadDashboard();
+        } catch (err) {
+          console.error("Submit error:", err);
+
+          try {
+            await savePendingSubmission(payload);
+
+            setSubmittingState(false);
+
+            clearAttendanceForm();
+
+            await refreshPendingStatus();
+
+            Swal.fire({
+              icon: "warning",
+
+              title: "Saved offline",
+
+              text: "Upload failed, but attendance was saved on this device and will sync automatically later.",
+            });
+          } catch (dbErr) {
+            setSubmittingState(false);
+
+            console.error("Offline save error:", dbErr);
+
+            Swal.fire("Failed to save attendance. Please try again.");
+          }
+        }
+      }
+
+      /**********************************************************
+       * ONLINE / OFFLINE EVENTS
+       **********************************************************/
+
+      window.addEventListener("online", () => {
+        refreshPendingStatus();
+
+        syncPendingAttendance(true);
       });
-    });
 
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      window.location.reload();
-    });
-  }
+      window.addEventListener("offline", () => {
+        refreshPendingStatus();
+      });
 
-  refreshPendingStatus();
-  syncPendingAttendance();
-</script>
-</body>
+      /**********************************************************
+       * SERVICE WORKER
+       **********************************************************/
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("./service-worker.js")
+
+          .then((registration) => {
+            console.log("[Service Worker] Registered successfully.");
+
+            /*
+             * Detect a new service worker version.
+             */
+
+            registration.addEventListener("updatefound", () => {
+              const newWorker = registration.installing;
+
+              if (!newWorker) {
+                return;
+              }
+
+              newWorker.addEventListener("statechange", () => {
+                /*
+                 * A new version has been installed
+                 * while an older version is still controlling
+                 * the page.
+                 */
+
+                if (
+                  newWorker.state === "installed" &&
+                  navigator.serviceWorker.controller
+                ) {
+                  Swal.fire({
+                    icon: "info",
+
+                    title: "Update Available",
+
+                    text: "A new version of K5Tech Attendance is available.",
+
+                    confirmButtonText: "Update Now",
+
+                    allowOutsideClick: false,
+                  })
+
+                    .then((result) => {
+                      if (result.isConfirmed) {
+                        newWorker.postMessage({
+                          action: "skipWaiting",
+                        });
+                      }
+                    });
+                }
+              });
+            });
+          })
+
+          .catch((error) => {
+            console.error("[Service Worker] Registration failed:", error);
+          });
+
+        /*
+         * When the new service worker takes control,
+         * reload the page so the new version is loaded.
+         */
+
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          window.location.reload();
+        });
+      }
+
+      /**********************************************************
+       * APPLICATION INITIALIZATION
+       **********************************************************/
+
+      async function initializeApp() {
+        const user = loadSession();
+
+        if (user) {
+          showDashboardView();
+
+          await loadDashboard();
+
+          return;
+        }
+
+        showLoginView();
+      }
+
+      initializeApp();
+    </script>
+  </body>
 </html>
