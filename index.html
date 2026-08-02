@@ -477,8 +477,8 @@
       }
 
       /* =====================================================
-   DARK ATTENDANCE TABLE
-===================================================== */
+        DARK ATTENDANCE TABLE
+      ===================================================== */
       .table-wrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile devices */
@@ -486,15 +486,10 @@
       }
       .attendance-table {
         width: 100%;
-
         min-width: 470px;
-
         border-collapse: separate;
-
         border-spacing: 0;
-
         font-size: 12px;
-
         color: #e2e8f0;
       }
 
@@ -1377,7 +1372,7 @@
        **********************************************************/
 
       const API_URL =
-        "https://script.google.com/macros/s/AKfycbx5eEMfOFawDBzHNLS_vseenYbzynm8RTmbwMnnaYDCPIKANXjhuRbjinn9ZWkE0Tr3/exec";
+        "https://script.google.com/macros/s/AKfycbyDkFuOsm8ZtvLvjdI6bZDVTxgQHE23ZqbIqVy8HpjD28N-4I-aLKtcj1FOFGPWsBWG/exec";
 
       /**********************************************************
        * SESSION
@@ -1471,6 +1466,8 @@
         updateAttendanceHeader();
 
         prefillShiftFromDashboard();
+
+        initializeGPS();
       }
 
       /**********************************************************
@@ -2474,10 +2471,23 @@
             refreshPendingStatus();
           },
 
+          // function (err) {
+          //   console.error("GPS error:", err);
+
+          //   gpsEl.innerHTML = "❌ GPS unavailable";
+
+          //   refreshPendingStatus();
+          // },
           function (err) {
             console.error("GPS error:", err);
 
-            gpsEl.innerHTML = "❌ GPS unavailable";
+            // Provide specific feedback based on the error code
+            if (err.code === 1) {
+              gpsEl.innerHTML =
+                "❌ Location access denied. Please enable it in your browser/system settings.";
+            } else {
+              gpsEl.innerHTML = "❌ GPS unavailable";
+            }
 
             refreshPendingStatus();
           },
@@ -2485,9 +2495,9 @@
           {
             enableHighAccuracy: true,
 
-            timeout: 10000,
+            timeout: 30000,
 
-            maximumAge: 0,
+            maximumAge: 60000,
           },
         );
       }
