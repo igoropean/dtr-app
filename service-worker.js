@@ -1,4 +1,4 @@
-const CACHE_NAME = "k5tech-dtr-v11";
+const CACHE_NAME = "k5tech-dtr-v12";
 
 const APP_FILES = [
   "./",
@@ -61,8 +61,6 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   /*
    * Only handle GET requests.
-   * POST requests are handled directly
-   * by the application/API.
    */
 
   if (event.request.method !== "GET") {
@@ -71,12 +69,33 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
-  /*
-   * HTML / navigation requests
+  /********************************************************
+   * API REQUESTS
    *
-   * Always try the network first.
-   * If offline, fall back to cached index.html.
-   */
+   * NEVER CACHE API DATA.
+   *
+   * Dashboard data, cutoff information, attendance
+   * records, etc. must always come from the server.
+   ********************************************************/
+
+  const isApiRequest = url.searchParams.has("action");
+
+  if (isApiRequest) {
+    event.respondWith(
+      fetch(event.request, {
+        cache: "no-store",
+      }),
+    );
+
+    return;
+  }
+
+  /********************************************************
+   * HTML / NAVIGATION
+   *
+   * Network first.
+   * Cached index.html is used only when offline.
+   ********************************************************/
 
   if (event.request.mode === "navigate" || url.pathname.endsWith(".html")) {
     event.respondWith(
@@ -93,46 +112,46 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  /*
-   * Other static assets
+  /********************************************************
+   * STATIC ASSETS
    *
    * Cache first.
-   * If not cached, fetch from network
-   * and store a copy in the cache.
-   */
+   ********************************************************/
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+    caches
+      .match(event.request)
 
-      return fetch(event.request).then((networkResponse) => {
-        /*
-         * Only cache valid responses.
-         */
-
-        if (
-          !networkResponse ||
-          networkResponse.status !== 200 ||
-          networkResponse.type === "opaque"
-        ) {
-          return networkResponse;
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
 
-        const responseToCache = networkResponse.clone();
+        return fetch(event.request).then((networkResponse) => {
+          /*
+           * Only cache valid responses.
+           */
 
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(
-            event.request,
+          if (
+            !networkResponse ||
+            networkResponse.status !== 200 ||
+            networkResponse.type === "opaque"
+          ) {
+            return networkResponse;
+          }
 
-            responseToCache,
-          );
+          const responseToCache = networkResponse.clone();
+
+          caches
+            .open(CACHE_NAME)
+
+            .then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+
+          return networkResponse;
         });
-
-        return networkResponse;
-      });
-    }),
+      }),
   );
 });
 
