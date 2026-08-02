@@ -1,4 +1,4 @@
-const CACHE_NAME = "k5tech-dtr-v14";
+const CACHE_NAME = "k5tech-dtr-v15";
 
 const APP_FILES = [
   "./",
@@ -15,6 +15,9 @@ const APP_FILES = [
 self.addEventListener("install", (event) => {
   console.log("[Service Worker] Installing:", CACHE_NAME);
 
+  /*
+   * Activate the new service worker immediately.
+   */
   self.skipWaiting();
 
   event.waitUntil(
@@ -47,7 +50,6 @@ self.addEventListener("activate", (event) => {
           }),
         );
       })
-
       .then(() => {
         return self.clients.claim();
       }),
@@ -60,7 +62,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   /*
-   * Only handle GET requests.
+   * Service worker only handles GET requests.
    */
 
   if (event.request.method !== "GET") {
@@ -74,8 +76,13 @@ self.addEventListener("fetch", (event) => {
    *
    * NEVER CACHE API DATA.
    *
-   * Dashboard data, cutoff information, attendance
-   * records, etc. must always come from the server.
+   * This includes:
+   *
+   * ?action=getCutoffPeriod
+   * ?action=getDashboardAttendance
+   * ?action=reverseGeocode
+   *
+   * etc.
    ********************************************************/
 
   const isApiRequest = url.searchParams.has("action");
@@ -93,20 +100,77 @@ self.addEventListener("fetch", (event) => {
   /********************************************************
    * HTML / NAVIGATION
    *
-   * Network first.
-   * Cached index.html is used only when offline.
+   * STALE-WHILE-REVALIDATE
+   *
+   * 1. Return cached index.html immediately.
+   * 2. Fetch a fresh copy in the background.
+   * 3. Update the cache for the next visit.
    ********************************************************/
 
   if (event.request.mode === "navigate" || url.pathname.endsWith(".html")) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          return response;
-        })
+    const navigationRequest = event.request;
 
-        .catch(() => {
-          return caches.match("./index.html");
-        }),
+    event.respondWith(
+      caches.match("./index.html").then((cachedResponse) => {
+        /*
+         * ------------------------------------------------
+         * Background network update
+         * ------------------------------------------------
+         */
+
+        const networkFetch = fetch(navigationRequest)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+
+              /*
+               * Store the fresh app shell.
+               */
+
+              event.waitUntil(
+                caches.open(CACHE_NAME).then((cache) => {
+                  return cache.put("./index.html", responseToCache);
+                }),
+              );
+            }
+
+            return networkResponse;
+          })
+          .catch(() => {
+            /*
+             * Network unavailable.
+             *
+             * If cachedResponse exists,
+             * it will still be returned.
+             */
+
+            return null;
+          });
+
+        /*
+         * ------------------------------------------------
+         * FAST PATH
+         * ------------------------------------------------
+         *
+         * Cached app shell exists:
+         * return it immediately.
+         */
+
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        /*
+         * ------------------------------------------------
+         * FIRST VISIT
+         * ------------------------------------------------
+         *
+         * No cached app shell yet.
+         * We must wait for the network.
+         */
+
+        return networkFetch;
+      }),
     );
 
     return;
@@ -115,43 +179,61 @@ self.addEventListener("fetch", (event) => {
   /********************************************************
    * STATIC ASSETS
    *
-   * Cache first.
+   * CACHE FIRST
+   *
+   * Used for:
+   *
+   * - Icons
+   * - Manifest
+   * - CSS
+   * - JS
+   * - Other static resources
    ********************************************************/
 
   event.respondWith(
-    caches
-      .match(event.request)
+    caches.match(event.request).then((cachedResponse) => {
+      /*
+       * Cached asset available.
+       */
 
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      /*
+       * Not cached.
+       * Get it from network.
+       */
+
+      return fetch(event.request).then((networkResponse) => {
+        /*
+         * Only cache valid responses.
+         */
+
+        if (
+          !networkResponse ||
+          networkResponse.status !== 200 ||
+          networkResponse.type === "opaque"
+        ) {
+          return networkResponse;
         }
 
-        return fetch(event.request).then((networkResponse) => {
-          /*
-           * Only cache valid responses.
-           */
+        const responseToCache = networkResponse.clone();
 
-          if (
-            !networkResponse ||
-            networkResponse.status !== 200 ||
-            networkResponse.type === "opaque"
-          ) {
-            return networkResponse;
-          }
+        /*
+         * Save the newly discovered
+         * static asset for future visits.
+         */
 
-          const responseToCache = networkResponse.clone();
+        event.waitUntil(
+          caches.open(CACHE_NAME).then((cache) => {
+            return cache.put(event.request, responseToCache);
+          }),
+        );
 
-          caches
-            .open(CACHE_NAME)
-
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-
-          return networkResponse;
-        });
-      }),
+        return networkResponse;
+      });
+    }),
   );
 });
 
