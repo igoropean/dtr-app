@@ -1,9 +1,11 @@
-const CACHE_NAME = "k5tech-dtr-v15";
+const CACHE_NAME = "k5tech-dtr-v16";
 
 const APP_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
+  "./toc.html",
+  "./manifest-toc.json",
   "./K5Tech_Icon_192.png",
   "./K5Tech_Icon_512.png",
 ];
@@ -102,16 +104,28 @@ self.addEventListener("fetch", (event) => {
    *
    * STALE-WHILE-REVALIDATE
    *
-   * 1. Return cached index.html immediately.
+   * 1. Return the cached page immediately.
    * 2. Fetch a fresh copy in the background.
    * 3. Update the cache for the next visit.
+   *
+   * NOTE: This app now ships two HTML "shells" —
+   * index.html (employee app) and toc.html (TOC kiosk).
+   * The cache key below is derived from the actual
+   * requested file, not hardcoded to index.html, so each
+   * page is cached/updated independently. A request for
+   * the site root ("/") still falls back to index.html,
+   * matching the default start_url behavior.
    ********************************************************/
 
   if (event.request.mode === "navigate" || url.pathname.endsWith(".html")) {
     const navigationRequest = event.request;
 
+    const fileMatch = url.pathname.match(/\/([^/]+\.html)$/);
+
+    const cacheKey = fileMatch ? "./" + fileMatch[1] : "./index.html";
+
     event.respondWith(
-      caches.match("./index.html").then((cachedResponse) => {
+      caches.match(cacheKey).then((cachedResponse) => {
         /*
          * ------------------------------------------------
          * Background network update
@@ -129,7 +143,7 @@ self.addEventListener("fetch", (event) => {
 
               event.waitUntil(
                 caches.open(CACHE_NAME).then((cache) => {
-                  return cache.put("./index.html", responseToCache);
+                  return cache.put(cacheKey, responseToCache);
                 }),
               );
             }

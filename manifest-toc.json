@@ -1,0 +1,20 @@
+{
+  "name": "K5Tech TOC Attendance",
+  "short_name": "TOC Attendance",
+  "start_url": "./toc.html",
+  "display": "standalone",
+  "background_color": "#0a0c12",
+  "theme_color": "#d6001c",
+  "icons": [
+    {
+      "src": "K5Tech_Icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "K5Tech_Icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -4,9 +4,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="UTF-8" />
 
-    <title>K5Tech Attendance</title>
+    <title>K5Tech TOC Attendance</title>
 
-    <link rel="manifest" href="manifest.json" />
+    <link rel="manifest" href="manifest-toc.json" />
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -74,8 +74,8 @@
    GLOBAL VIEW CONTAINERS
 ===================================================== */
 
-      #dashboardView,
-      #attendanceView {
+      #attendanceView,
+      #pinOverlay {
         min-height: 100vh;
 
         background: radial-gradient(
@@ -154,7 +154,7 @@
 ===================================================== */
 
       /* 1. Global View Wrapper & Background */
-      #loginView {
+      #selectUserView {
         min-height: 100vh;
         display: flex;
         align-items: center;
@@ -175,8 +175,8 @@
         background-attachment: fixed;
       }
 
-      #loginView input,
-      #loginView textarea {
+      #selectUserView input,
+      #selectUserView textarea {
         width: 100%;
         padding: 12px;
         font-size: 16px;
@@ -188,8 +188,8 @@
         box-sizing: border-box;
       }
 
-      #loginView input:focus,
-      #loginView textarea:focus {
+      #selectUserView input:focus,
+      #selectUserView textarea:focus {
         border-color: #0056ff;
         box-shadow: 0 0 8px rgba(0, 86, 255, 0.4);
       }
@@ -1180,132 +1180,289 @@
       .swal2-container {
         background: rgba(0, 0, 0, 0.6) !important;
       }
+
+      /* =====================================================
+   TOC KIOSK — SELECT USER SCREEN
+===================================================== */
+
+      .kiosk-card {
+        width: 100%;
+        max-width: 480px;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        box-sizing: border-box;
+      }
+
+      .kiosk-roster-status {
+        text-align: center;
+        font-size: 13px;
+        color: #a0aec0;
+        margin: 4px 0 16px;
+        min-height: 16px;
+      }
+
+      .user-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        max-height: 50vh;
+        overflow-y: auto;
+        padding: 4px 2px;
+        margin-top: 4px;
+      }
+
+      .user-btn {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: bold;
+        padding: 16px 8px;
+        text-align: center;
+        word-break: break-word;
+        transition: all 0.15s ease;
+      }
+
+      .user-btn:hover,
+      .user-btn:active {
+        background: #0056ff;
+        border-color: #0056ff;
+        transform: translateY(-1px);
+      }
+
+      .user-btn .user-btn-pin {
+        display: block;
+        font-size: 11px;
+        font-weight: normal;
+        color: #a0aec0;
+        margin-top: 4px;
+      }
+
+      .user-empty-note {
+        text-align: center;
+        color: #a0aec0;
+        font-size: 14px;
+        padding: 20px 0;
+      }
+
+      .kiosk-bottom-link {
+        display: block;
+        text-align: center;
+        margin-top: 22px;
+        padding: 10px;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #e2e8f0;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: bold;
+        transition: all 0.2s ease;
+      }
+
+      .kiosk-bottom-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* =====================================================
+   TOC KIOSK — PIN OVERLAY
+===================================================== */
+
+      .pin-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(5, 6, 10, 0.75);
+        backdrop-filter: blur(4px);
+        z-index: 50;
+      }
+
+      .pin-title {
+        text-align: center;
+        margin: 0 0 4px;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .pin-subtitle {
+        text-align: center;
+        margin: 0 0 20px;
+        font-size: 13px;
+        color: #a0aec0;
+      }
+
+      .pin-dots {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+
+      .pin-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: transparent;
+      }
+
+      .pin-dot.filled {
+        background: #d6001c;
+        border-color: #d6001c;
+      }
+
+      .keypad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .keypad-btn {
+        padding: 18px 0;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(0, 0, 0, 0.3);
+        color: #ffffff;
+      }
+
+      .keypad-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .keypad-btn.keypad-clear {
+        font-size: 15px;
+      }
+
+      .pin-cancel-btn {
+        width: 100%;
+        margin-top: 16px;
+        padding: 13px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 9px;
+        background: transparent;
+        color: #e2e8f0;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .pin-cancel-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      /* =====================================================
+   TOC KIOSK — ATTENDANCE VIEW TWEAKS
+===================================================== */
+
+      .last-state-banner {
+        margin: 10px 0 4px;
+        padding: 10px 12px;
+        border-radius: 9px;
+        background: rgba(0, 86, 255, 0.12);
+        border: 1px solid rgba(0, 86, 255, 0.35);
+        color: #cfe0ff;
+        font-size: 13px;
+      }
+
+      .switch-user-btn {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #e2e8f0;
+        font-size: 13px;
+        font-weight: bold;
+      }
     </style>
   </head>
 
   <body>
     <!-- =====================================================
-       LOGIN VIEW
+       TOC KIOSK — SELECT USER VIEW
   ===================================================== -->
 
-    <section id="loginView">
-      <div class="card login-card">
-        <!-- <div class="login-logo">K5</div> -->
-
+    <section id="selectUserView">
+      <div class="kiosk-card">
         <div class="login-logo-container">
           <img
-            src="K5Tech_Icon_192.png"
-            alt="K5Tech Logo"
-            class="login-logo-img" />
+            class="login-logo-img"
+            src="K5Tech_Icon_512.png"
+            alt="K5Tech" />
         </div>
 
-        <h1 class="login-title">K5Tech Attendance</h1>
+        <h1 class="login-title">TOC Attendance</h1>
 
-        <p class="login-subtitle">Sign in to view your attendance records</p>
+        <p id="operatorLine" class="login-subtitle"></p>
 
-        <label class="form-label" for="loginUsername"> Employee ID </label>
-
-        <input
-          id="loginUsername"
-          type="text"
-          placeholder="Enter Employee ID"
-          autocomplete="username" />
-
-        <label class="form-label" for="loginPassword"> Password </label>
+        <p class="login-subtitle">
+          Tap your name below, then take a selfie and clock in or out.
+        </p>
 
         <input
-          id="loginPassword"
-          type="password"
-          placeholder="Enter Password"
-          autocomplete="current-password" />
+          id="userSearch"
+          placeholder="Search your name..."
+          oninput="renderUserGrid()" />
 
-        <button
-          type="button"
-          id="loginBtn"
-          class="primary-btn"
-          onclick="login()">
-          Login
-        </button>
+        <div id="rosterStatus" class="kiosk-roster-status">
+          Loading roster...
+        </div>
+
+        <div id="userGrid" class="user-grid"></div>
+
+        <div id="tocSyncStatus" style="font-size: 13px; color: #666; text-align: center; margin-top: 14px;">
+          Checking sync status...
+        </div>
+
+        <a href="index.html" class="kiosk-bottom-link">
+          ← Back to Employee Dashboard
+        </a>
       </div>
     </section>
 
     <!-- =====================================================
-       DASHBOARD VIEW
+       TOC KIOSK — PIN OVERLAY
   ===================================================== -->
 
-    <section id="dashboardView" class="hidden">
-      <div class="container">
-        <div class="dashboard-top">
-          <h2 id="welcomeName">Welcome</h2>
+    <div id="pinOverlay" class="pin-overlay hidden">
+      <div class="kiosk-card">
+        <h2 id="pinTitle" class="pin-title">Enter PIN</h2>
 
-          <div id="dashboardEmployeeId" class="employee-id-display">
-            Employee ID:
-          </div>
+        <p id="pinSubtitle" class="pin-subtitle">for</p>
 
-          <div class="cutoff-card">
-            <div class="cutoff-label">Current Cutoff Period</div>
+        <div id="pinDots" class="pin-dots"></div>
 
-            <div id="cutoffDisplay" class="cutoff-value">Loading...</div>
-          </div>
+        <div class="keypad">
+          <button type="button" class="keypad-btn" onclick="pressPinKey('1')">1</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('2')">2</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('3')">3</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('4')">4</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('5')">5</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('6')">6</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('7')">7</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('8')">8</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('9')">9</button>
+          <button type="button" class="keypad-btn keypad-clear" onclick="pressPinKey('clear')">Clear</button>
+          <button type="button" class="keypad-btn" onclick="pressPinKey('0')">0</button>
+          <button type="button" class="keypad-btn keypad-clear" onclick="pressPinKey('back')">⌫</button>
         </div>
 
-        <div class="dashboard-actions">
-          <button
-            type="button"
-            class="action-btn record-btn"
-            onclick="showAttendanceView()">
-            📍 Record Attendance
-          </button>
+        <button type="button" class="primary-btn" style="margin-top: 16px;" onclick="confirmPin()">
+          Confirm PIN
+        </button>
 
-          <button
-            type="button"
-            class="action-btn refresh-btn"
-            id="refreshDashboardBtn"
-            onclick="loadDashboard()">
-            🔄 Refresh
-          </button>
-        </div>
-
-        <div class="table-card">
-          <div class="table-title">Daily Time Records</div>
-
-          <div class="table-wrapper">
-            <table class="attendance-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Day In</th>
-                  <th>Day Out</th>
-                  <th>Night In</th>
-                  <th>Night Out</th>
-                </tr>
-              </thead>
-
-              <tbody id="attendanceTableBody">
-                <tr>
-                  <td colspan="5" class="dashboard-status">
-                    Loading attendance records...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="dashboardStatus" class="dashboard-status"></div>
-
-        <a
-          href="toc.html"
-          id="tocSwitchLink"
-          class="toc-switch-link hidden">
-          👥 Switch to TOC Attendance (kiosk)
-        </a>
-
-        <button type="button" class="logout-btn" onclick="logout()">
-          🚪 Logout
+        <button type="button" class="pin-cancel-btn" onclick="closePinOverlay()">
+          Cancel
         </button>
       </div>
-    </section>
+    </div>
 
     <!-- =====================================================
        ATTENDANCE VIEW
@@ -1317,9 +1474,9 @@
           <div class="attendance-header">
             <button
               type="button"
-              class="back-btn"
-              onclick="showDashboardView()">
-              ← Back
+              class="back-btn switch-user-btn"
+              onclick="returnToSelectUser()">
+              ← Switch User
             </button>
 
             <div class="attendance-employee">
@@ -1327,11 +1484,11 @@
                 Employee
               </div>
 
-              <div id="attendanceEmployeeId" class="attendance-employee-id">
-                Employee ID
-              </div>
+              <div class="attendance-employee-id">TOC Employee</div>
             </div>
           </div>
+
+          <div id="lastStateBanner" class="last-state-banner hidden"></div>
 
           <div id="gps">📍 Detecting GPS...</div>
 
@@ -1408,794 +1565,453 @@
     <script>
       /**********************************************************
        * CONFIGURATION
+       *
+       * Same Apps Script Web App as the employee attendance app —
+       * this page just uses different actions (getTocUsers,
+       * toclogin, tocattendance).
        **********************************************************/
 
       const API_URL =
         "https://script.google.com/macros/s/AKfycbwWOmMc56V4dLS1DQPPQTHtc-2jXDvybxtuwyJ1yg8-xCfrMypfwtgWrHacqSpIy4KJ/exec";
 
+      const ROSTER_CACHE_KEY = "k5techTocRosterCache";
+
+      const LAST_SITE_KEY = "k5techTocLastSite";
+
+      const IDLE_TIMEOUT_MS = 90000; // 90s of no interaction on the attendance screen returns to Select User
+
       /**********************************************************
-       * SESSION
+       * OPERATOR / ACCESS CONTROL
+       *
+       * TOC kiosk mode may only be opened by a regular
+       * employee who is (a) logged into the employee app in
+       * this same browser tab, and (b) flagged TRUE in
+       * Column E of the users sheet. SESSION_KEY matches
+       * index.html's session key exactly, since sessionStorage
+       * carries over when navigating same-origin in the same
+       * tab (e.g. tapping the dashboard's kiosk link).
+       *
+       * The employee-app login already told the server whether
+       * this account has TOC access, but we deliberately don't
+       * trust that cached flag alone here — checkTocAccess asks
+       * the server fresh, and every TOC POST action re-verifies
+       * it again server-side too.
        **********************************************************/
-
-      let currentUser = null;
-
-      let currentCutoff = null;
 
       const SESSION_KEY = "k5techAttendanceUser";
 
-      function saveSession(user) {
-        currentUser = user;
+      let operator = null; // { employeeId, name }
 
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      function goToEmployeeLogin(message) {
+        if (message) {
+          sessionStorage.setItem("k5techTocAccessMessage", message);
+        }
+
+        window.location.href = "index.html";
       }
 
-      function loadSession() {
+      async function requireTocOperator() {
+        let session = null;
+
         try {
           const saved = sessionStorage.getItem(SESSION_KEY);
 
-          if (!saved) {
-            return null;
-          }
-
-          const user = JSON.parse(saved);
-
-          if (!user || !user.employeeId || !user.name) {
-            return null;
-          }
-
-          currentUser = user;
-
-          return user;
+          session = saved ? JSON.parse(saved) : null;
         } catch (err) {
-          console.error("Session load error:", err);
-
-          return null;
-        }
-      }
-
-      function clearSession() {
-        currentUser = null;
-
-        currentCutoff = null;
-
-        sessionStorage.removeItem(SESSION_KEY);
-      }
-
-      /**********************************************************
-       * VIEW NAVIGATION
-       **********************************************************/
-
-      function showLoginView() {
-        document.getElementById("loginView").classList.remove("hidden");
-
-        document.getElementById("dashboardView").classList.add("hidden");
-
-        document.getElementById("attendanceView").classList.add("hidden");
-      }
-
-      function showDashboardView() {
-        if (!currentUser) {
-          showLoginView();
-
-          return;
+          session = null;
         }
 
-        document.getElementById("loginView").classList.add("hidden");
-
-        document.getElementById("dashboardView").classList.remove("hidden");
-
-        document.getElementById("attendanceView").classList.add("hidden");
-
-        updateDashboardHeader();
-      }
-
-      function showAttendanceView() {
-        if (!currentUser) {
-          showLoginView();
-
-          return;
-        }
-
-        document.getElementById("loginView").classList.add("hidden");
-
-        document.getElementById("dashboardView").classList.add("hidden");
-
-        document.getElementById("attendanceView").classList.remove("hidden");
-
-        updateAttendanceHeader();
-
-        prefillShiftFromDashboard();
-
-        initializeGPS();
-      }
-
-      /**********************************************************
-       * LOGIN
-       **********************************************************/
-
-      async function login() {
-        const username = document.getElementById("loginUsername").value.trim();
-
-        const password = document.getElementById("loginPassword").value.trim();
-
-        if (!username) {
-          Swal.fire("Please enter your Employee ID.");
-
-          return;
-        }
-
-        if (!password) {
-          Swal.fire("Please enter your password.");
-
-          return;
-        }
-
-        const loginBtn = document.getElementById("loginBtn");
-
-        loginBtn.disabled = true;
-
-        loginBtn.innerText = "Signing in...";
-
-        try {
-          const response = await fetch(API_URL, {
-            method: "POST",
-
-            body: JSON.stringify({
-              action: "login",
-
-              username: username,
-
-              password: password,
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.status !== "success") {
-            Swal.fire({
-              icon: "error",
-
-              title: "Login Failed",
-
-              text: data.message || "Invalid username or password.",
-            });
-
-            return;
-          }
-
-          saveSession(data.user);
-
-          document.getElementById("loginUsername").value = "";
-
-          document.getElementById("loginPassword").value = "";
-
-          showDashboardView();
-
-          await loadDashboard();
-        } catch (err) {
-          console.error("Login error:", err);
-
-          Swal.fire({
-            icon: "error",
-
-            title: "Connection Error",
-
-            text: "Unable to connect to the attendance server.",
-          });
-        } finally {
-          loginBtn.disabled = false;
-
-          loginBtn.innerText = "Login";
-        }
-      }
-
-      /**********************************************************
-       * LOGOUT
-       **********************************************************/
-
-      function logout() {
-        Swal.fire({
-          icon: "question",
-
-          title: "Logout?",
-
-          text: "Are you sure you want to logout?",
-
-          showCancelButton: true,
-
-          confirmButtonText: "Logout",
-
-          cancelButtonText: "Cancel",
-        }).then((result) => {
-          if (!result.isConfirmed) {
-            return;
-          }
-
-          stopCamera();
-
-          clearSession();
-
-          clearAttendanceForm();
-
-          showLoginView();
-        });
-      }
-
-      /**********************************************************
-       * DASHBOARD HEADER
-       **********************************************************/
-
-      function updateDashboardHeader() {
-        if (!currentUser) {
-          return;
-        }
-
-        document.getElementById("welcomeName").innerText =
-          "Welcome, " + currentUser.name;
-
-        document.getElementById("dashboardEmployeeId").innerText =
-          "Employee ID: " + currentUser.employeeId;
-
-        const tocLink = document.getElementById("tocSwitchLink");
-
-        if (currentUser.tocAccess) {
-          tocLink.classList.remove("hidden");
-        } else {
-          tocLink.classList.add("hidden");
-        }
-      }
-
-      /**********************************************************
-       * ATTENDANCE HEADER
-       **********************************************************/
-
-      function updateAttendanceHeader() {
-        if (!currentUser) {
-          return;
-        }
-
-        document.getElementById("attendanceEmployeeName").innerText =
-          currentUser.name;
-
-        document.getElementById("attendanceEmployeeId").innerText =
-          "Employee ID: " + currentUser.employeeId;
-      }
-
-      /**********************************************************
-       * LOAD DASHBOARD
-       **********************************************************/
-
-      async function loadDashboard() {
-        if (!currentUser) {
-          showLoginView();
-
-          return;
-        }
-
-        const refreshBtn = document.getElementById("refreshDashboardBtn");
-
-        refreshBtn.disabled = true;
-
-        refreshBtn.innerText = "⏳ Loading...";
-
-        const statusEl = document.getElementById("dashboardStatus");
-
-        statusEl.innerText = "Loading attendance records...";
-
-        try {
-          /*
-           * First get current cutoff.
-           */
-
-          const cutoffResponse = await fetch(
-            API_URL + "?action=getCutoffPeriod",
+        if (!session || !session.employeeId) {
+          goToEmployeeLogin(
+            "Please log in first, then use Switch to TOC Attendance.",
           );
 
-          const cutoffData = await cutoffResponse.json();
+          return false;
+        }
 
-          if (cutoffData.status !== "success") {
-            throw new Error(
-              cutoffData.message || "Unable to load cutoff period.",
-            );
-          }
-
-          currentCutoff = cutoffData.cutoff;
-
-          updateCutoffDisplay();
-
-          /*
-           * Then get dashboard records.
-           */
-
-          const dashboardUrl =
+        try {
+          const res = await fetch(
             API_URL +
-            "?action=getDashboardAttendance" +
-            "&employeeId=" +
-            encodeURIComponent(currentUser.employeeId);
+              "?action=checkTocAccess&employeeId=" +
+              encodeURIComponent(session.employeeId),
+          );
 
-          const dashboardResponse = await fetch(dashboardUrl);
+          const data = await res.json();
 
-          const dashboardData = await dashboardResponse.json();
-
-          if (dashboardData.status !== "success") {
-            throw new Error(
-              dashboardData.message || "Unable to load attendance.",
+          if (data.status !== "success" || !data.authorized) {
+            goToEmployeeLogin(
+              "Your account is not authorized for TOC Attendance.",
             );
+
+            return false;
           }
 
-          renderAttendanceTable(dashboardData.attendance || []);
+          operator = {
+            employeeId: session.employeeId,
 
-          statusEl.innerText =
-            "Last updated: " +
-            new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
+            name: data.name || session.name || session.employeeId,
+          };
+
+          document.getElementById("operatorLine").innerText =
+            "Operated by " + operator.name;
+
+          return true;
         } catch (err) {
-          console.error("Dashboard error:", err);
+          console.error("TOC access check failed:", err);
 
-          document.getElementById("attendanceTableBody").innerHTML = `
+          Swal.fire(
+            "Could not verify TOC access. Check your connection and try again.",
+          );
 
-              <tr>
-
-                <td
-                  colspan="5"
-                  class="dashboard-status"
-                >
-
-                  ❌ Unable to load attendance records.
-
-                </td>
-
-              </tr>
-
-            `;
-
-          statusEl.innerText = err.message || "Unable to load dashboard.";
-        } finally {
-          refreshBtn.disabled = false;
-
-          refreshBtn.innerText = "🔄 Refresh";
+          return false;
         }
       }
 
       /**********************************************************
-       * UPDATE CUTOFF DISPLAY
+       * KIOSK STATE
        **********************************************************/
 
-      function updateCutoffDisplay() {
-        if (!currentCutoff) {
-          document.getElementById("cutoffDisplay").innerText = "Unavailable";
+      let tocUsers = []; // [{ username, hasPin }]
 
-          return;
+      let selectedUser = null; // { username }
+
+      let lastState = null; // { clockType, shift } or null
+
+      let pinUser = null; // { username, hasPin }
+
+      let pinBuffer = "";
+
+      let idleTimer = null;
+
+      /**********************************************************
+       * ROSTER (SELECT USER SCREEN)
+       **********************************************************/
+
+      const rosterStatusEl = document.getElementById("rosterStatus");
+
+      const userGridEl = document.getElementById("userGrid");
+
+      async function loadTocUsers() {
+        try {
+          const res = await fetch(API_URL + "?action=getTocUsers");
+
+          const data = await res.json();
+
+          if (data.status !== "success") {
+            throw new Error(data.message || "Failed to load roster");
+          }
+
+          tocUsers = data.users || [];
+
+          localStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(tocUsers));
+
+          rosterStatusEl.innerText = tocUsers.length
+            ? ""
+            : "No TOC users found. Add usernames to the TOC_Users sheet.";
+
+          renderUserGrid();
+        } catch (err) {
+          console.error("Roster load error:", err);
+
+          const cached = localStorage.getItem(ROSTER_CACHE_KEY);
+
+          if (cached) {
+            tocUsers = JSON.parse(cached);
+
+            rosterStatusEl.innerText =
+              "🟠 Offline — showing last saved roster.";
+
+            renderUserGrid();
+          } else {
+            tocUsers = [];
+
+            rosterStatusEl.innerHTML =
+              'Unable to load roster. <a href="#" onclick="loadTocUsers();return false;" style="color:#5b9dff;">Retry</a>';
+
+            userGridEl.innerHTML = "";
+          }
         }
-
-        document.getElementById("cutoffDisplay").innerText =
-          formatDateForDisplay(currentCutoff.from) +
-          " – " +
-          formatDateForDisplay(currentCutoff.to);
       }
 
-      /**********************************************************
-       * RENDER ATTENDANCE TABLE
-       **********************************************************/
-      /**********************************************************
-       * RENDER ATTENDANCE TABLE
-       **********************************************************/
+      function renderUserGrid() {
+        const filter = document
+          .getElementById("userSearch")
+          .value.trim()
+          .toLowerCase();
 
-      function renderAttendanceTable(records) {
-        const tbody = document.getElementById("attendanceTableBody");
+        const filtered = filter
+          ? tocUsers.filter((u) => u.username.toLowerCase().includes(filter))
+          : tocUsers;
 
-        if (!records || !records.length) {
-          tbody.innerHTML = `
-
-      <tr>
-
-        <td
-          colspan="5"
-          class="dashboard-status"
-        >
-
-          No dates available for
-          the current cutoff.
-
-        </td>
-
-      </tr>
-
-    `;
+        if (!filtered.length) {
+          userGridEl.innerHTML = tocUsers.length
+            ? '<div class="user-empty-note">No matching names.</div>'
+            : "";
 
           return;
         }
 
-        const todayKey = getLocalDateKey(new Date());
-
-        tbody.innerHTML = records
-          .map((record) => {
-            /*
-             * Determine the day of the week.
-             *
-             * 0 = Sunday
-             * 6 = Saturday
-             */
-
-            const dayOfWeek = getDayOfWeek(record.date);
-
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-            const isToday = record.date === todayKey;
-
-            /*
-             * Today gets the blue highlight.
-             * Weekend gets the light grey background.
-             */
-
-            let rowClass = "";
-
-            if (isToday) {
-              rowClass = "today";
-            } else if (isWeekend) {
-              rowClass = "weekend";
-            }
-
-            return `
-
-            <tr
-              class="${rowClass}"
-            >
-
-              <td
-                class="date-cell"
-              >
-
-                ${formatDateWithDay(record.date)}
-
-              </td>
-
-
-              <td
-                class="${record.dayIn ? "time-recorded" : "time-missing"}"
-              >
-
-                ${record.dayIn ? formatTime12Hour(record.dayIn) : "—"}
-
-              </td>
-
-
-              <td
-                class="${record.dayOut ? "time-recorded" : "time-missing"}"
-              >
-
-                ${record.dayOut ? formatTime12Hour(record.dayOut) : "—"}
-
-              </td>
-
-
-              <td
-                class="${record.nightIn ? "time-recorded" : "time-missing"}"
-              >
-
-                ${record.nightIn ? formatTime12Hour(record.nightIn) : "—"}
-
-              </td>
-
-
-              <td
-                class="${record.nightOut ? "time-recorded" : "time-missing"}"
-              >
-
-              ${record.nightOut ? formatTime12Hour(record.nightOut) : "—"}
-
-              </td>
-
-            </tr>
-
-          `;
-          })
+        userGridEl.innerHTML = filtered
+          .map(
+            (u) => `
+              <button type="button" class="user-btn" onclick="selectUser('${u.username.replace(/'/g, "\\'")}')">
+                ${u.username}
+                ${u.hasPin ? '<span class="user-btn-pin">🔒 PIN required</span>' : ""}
+              </button>
+            `,
+          )
           .join("");
       }
 
       /**********************************************************
-       * DATE HELPERS
+       * PIN ENTRY
        **********************************************************/
 
-      function getLocalDateKey(date) {
-        const year = date.getFullYear();
+      const pinOverlayEl = document.getElementById("pinOverlay");
 
-        const month = String(date.getMonth() + 1).padStart(2, "0");
+      function selectUser(username) {
+        const user = tocUsers.find((u) => u.username === username);
 
-        const day = String(date.getDate()).padStart(2, "0");
+        if (!user) {
+          Swal.fire("That user is no longer on the roster. Refreshing...");
 
-        return year + "-" + month + "-" + day;
+          loadTocUsers();
+
+          return;
+        }
+
+        if (!user.hasPin) {
+          performTocLogin(username, "");
+
+          return;
+        }
+
+        pinUser = user;
+
+        pinBuffer = "";
+
+        document.getElementById("pinTitle").innerText = "Enter PIN";
+
+        document.getElementById("pinSubtitle").innerText = "for " + username;
+
+        renderPinDots();
+
+        pinOverlayEl.classList.remove("hidden");
       }
 
-      /**********************************************************
-       * GET DAY OF WEEK
-       *
-       * Returns:
-       * 0 = Sunday
-       * 1 = Monday
-       * ...
-       * 6 = Saturday
-       **********************************************************/
+      function renderPinDots() {
+        const dotsEl = document.getElementById("pinDots");
 
-      function getDayOfWeek(dateKey) {
-        if (!dateKey) {
-          return -1;
+        if (!pinBuffer.length) {
+          dotsEl.innerHTML =
+            '<span style="font-size:13px;color:#a0aec0;">Enter your PIN</span>';
+
+          return;
         }
 
-        const parts = dateKey.split("-");
-
-        if (parts.length !== 3) {
-          return -1;
-        }
-
-        const date = new Date(
-          Number(parts[0]),
-
-          Number(parts[1]) - 1,
-
-          Number(parts[2]),
-        );
-
-        return date.getDay();
+        dotsEl.innerHTML = pinBuffer
+          .split("")
+          .map(() => '<span class="pin-dot filled"></span>')
+          .join("");
       }
 
-      /**********************************************************
-       * FORMAT DATE WITH DAY
-       *
-       * Example:
-       *
-       * 2026-07-11
-       *
-       * becomes:
-       *
-       * Jul 11 · Sat
-       **********************************************************/
-
-      function formatDateWithDay(dateKey) {
-        if (!dateKey) {
-          return "";
+      function pressPinKey(key) {
+        if (key === "clear") {
+          pinBuffer = "";
+        } else if (key === "back") {
+          pinBuffer = pinBuffer.slice(0, -1);
+        } else if (pinBuffer.length < 8) {
+          pinBuffer += key;
         }
 
-        const parts = dateKey.split("-");
+        renderPinDots();
+      }
 
-        if (parts.length !== 3) {
-          return dateKey;
+      function closePinOverlay() {
+        pinOverlayEl.classList.add("hidden");
+
+        pinUser = null;
+
+        pinBuffer = "";
+      }
+
+      async function confirmPin() {
+        if (!pinUser) {
+          return;
         }
 
-        const date = new Date(
-          Number(parts[0]),
+        if (!pinBuffer) {
+          Swal.fire("Please enter your PIN.");
 
-          Number(parts[1]) - 1,
+          return;
+        }
 
-          Number(parts[2]),
-        );
+        await performTocLogin(pinUser.username, pinBuffer);
+      }
 
-        const dateText = date.toLocaleDateString(
-          "en-US",
+      async function performTocLogin(username, pin) {
+        Swal.fire({
+          title: "Checking...",
 
-          {
-            month: "short",
+          allowOutsideClick: false,
 
-            day: "numeric",
+          didOpen: () => {
+            Swal.showLoading();
           },
-        );
-
-        const dayText = date.toLocaleDateString(
-          "en-US",
-
-          {
-            weekday: "short",
-          },
-        );
-
-        return `
-
-    ${dateText}
-
-    <span class="date-day">
-
-      · ${dayText}
-
-    </span>
-
-  `;
-      }
-
-      function formatDateForDisplay(dateKey) {
-        if (!dateKey) {
-          return "";
-        }
-
-        const parts = dateKey.split("-");
-
-        if (parts.length !== 3) {
-          return dateKey;
-        }
-
-        const date = new Date(
-          Number(parts[0]),
-          Number(parts[1]) - 1,
-          Number(parts[2]),
-        );
-
-        return date.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
         });
-      }
-
-      /**********************************************************
-       * FORMAT TIME TO 12-HOUR AM/PM
-       *
-       * Examples:
-       *
-       * 09:00     → 9:00 AM
-       * 16:40     → 4:40 PM
-       * 00:30     → 12:30 AM
-       * 12:00     → 12:00 PM
-       **********************************************************/
-
-      function formatTime12Hour(timeValue) {
-        if (!timeValue) {
-          return "";
-        }
-
-        /*
-         * If the backend already returns
-         * a Date/time string, try to extract
-         * the HH:mm portion.
-         */
-
-        const timeString = String(timeValue).trim();
-
-        /*
-         * Match:
-         *
-         * HH:mm
-         * HH:mm:ss
-         */
-
-        const match = timeString.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-
-        if (!match) {
-          /*
-           * If the value is already in a format
-           * such as "4:40 PM", leave it unchanged.
-           */
-
-          return timeString;
-        }
-
-        let hours = Number(match[1]);
-
-        const minutes = match[2];
-
-        const period = hours >= 12 ? "PM" : "AM";
-
-        /*
-         * Convert 00 hours to 12 AM.
-         */
-
-        if (hours === 0) {
-          hours = 12;
-        } else if (hours > 12) {
-          /*
-           * Convert 13–23 to 1–11 PM.
-           */
-          hours -= 12;
-        }
-
-        return `${hours}:${minutes} ${period}`;
-      }
-
-      /**********************************************************
-       * SMART SHIFT PREFILL
-       *
-       * Uses today's dashboard record.
-       *
-       * If today's Day In exists and Day Out is missing:
-       *   → Day
-       *
-       * If today's Night In exists and Night Out is missing:
-       *   → Night
-       *
-       * Otherwise:
-       *   → no automatic selection
-       *
-       * The user can still manually select a shift.
-       **********************************************************/
-
-      function prefillShiftFromDashboard() {
-        clearShiftSelection();
-
-        if (!currentCutoff || !currentCutoff.dates) {
-          return;
-        }
-
-        const todayKey = getLocalDateKey(new Date());
-
-        if (!currentCutoff.dates.includes(todayKey)) {
-          return;
-        }
-
-        /*
-         * Re-query dashboard data to get
-         * the current state.
-         *
-         * This avoids relying on table DOM.
-         */
-
-        loadShiftRecommendation(todayKey);
-      }
-
-      async function loadShiftRecommendation(todayKey) {
-        if (!currentUser) {
-          return;
-        }
 
         try {
-          const url =
-            API_URL +
-            "?action=getDashboardAttendance" +
-            "&employeeId=" +
-            encodeURIComponent(currentUser.employeeId);
+          const res = await fetch(API_URL, {
+            method: "POST",
 
-          const response = await fetch(url);
+            body: JSON.stringify({
+              action: "toclogin",
 
-          const data = await response.json();
+              operatorEmployeeId: operator ? operator.employeeId : "",
+
+              username: username,
+
+              pin: pin,
+            }),
+          });
+
+          const data = await res.json();
+
+          Swal.close();
 
           if (data.status !== "success") {
-            return;
-          }
-
-          const todayRecord = (data.attendance || []).find(
-            (record) => record.date === todayKey,
-          );
-
-          if (!todayRecord) {
-            return;
-          }
-
-          /*
-           * Day started but not completed.
-           */
-
-          if (todayRecord.dayIn && !todayRecord.dayOut) {
-            selectShift("Day");
-
-            setShiftHint(
-              "Day Shift automatically selected based on today's existing Clock-In.",
-            );
+            Swal.fire(data.message || "Unable to verify user.");
 
             return;
           }
 
-          /*
-           * Night started but not completed.
-           */
+          closePinOverlay();
 
-          if (todayRecord.nightIn && !todayRecord.nightOut) {
-            selectShift("Night");
+          selectedUser = { username: data.user.username, pin: pin };
 
-            setShiftHint(
-              "Night Shift automatically selected based on today's existing Clock-In.",
-            );
+          lastState = data.lastState || null;
 
-            return;
-          }
-
-          /*
-           * No active shift.
-           */
-
-          setShiftHint("Select the shift you are attending.");
+          showAttendanceView();
         } catch (err) {
-          console.error("Shift recommendation error:", err);
+          Swal.close();
+
+          console.error("TOC login error:", err);
+
+          Swal.fire(
+            "Could not reach the server. Check your connection and try again.",
+          );
         }
       }
+
+      /**********************************************************
+       * VIEW SWITCHING
+       **********************************************************/
+
+      function showSelectUserView() {
+        clearIdleTimer();
+
+        stopCamera();
+
+        document.getElementById("attendanceView").classList.add("hidden");
+
+        document.getElementById("selectUserView").classList.remove("hidden");
+
+        selectedUser = null;
+
+        lastState = null;
+
+        document.getElementById("userSearch").value = "";
+
+        loadTocUsers();
+
+        refreshPendingStatus();
+      }
+
+      function returnToSelectUser() {
+        showSelectUserView();
+      }
+
+      function showAttendanceView() {
+        document.getElementById("selectUserView").classList.add("hidden");
+
+        document.getElementById("attendanceView").classList.remove("hidden");
+
+        document.getElementById("attendanceEmployeeName").innerText =
+          selectedUser.username;
+
+        const lastSite = localStorage.getItem(LAST_SITE_KEY) || "";
+
+        document.getElementById("site").value = lastSite;
+
+        clearAttendanceForm(false);
+
+        applyLastStateHint();
+
+        initializeGPS();
+
+        refreshPendingStatus();
+
+        resetIdleTimer();
+      }
+
+      function applyLastStateHint() {
+        const banner = document.getElementById("lastStateBanner");
+
+        if (lastState && lastState.clockType === "Clock-In" && lastState.shift) {
+          selectShift(lastState.shift);
+
+          banner.innerText =
+            "Already clocked in (" +
+            lastState.shift +
+            " Shift). Tap Clock Out below when done, using the same shift.";
+
+          banner.classList.remove("hidden");
+        } else {
+          banner.classList.add("hidden");
+
+          setShiftHint("Select the shift you are attending.");
+        }
+      }
+
+      /**********************************************************
+       * IDLE TIMEOUT
+       *
+       * If the attendance screen sits untouched, return to
+       * Select User so the next TOC employee never accidentally
+       * submits under someone else's name.
+       **********************************************************/
+
+      function resetIdleTimer() {
+        clearIdleTimer();
+
+        idleTimer = setTimeout(() => {
+          if (!document.getElementById("attendanceView").classList.contains("hidden")) {
+            Swal.close();
+
+            showSelectUserView();
+          }
+        }, IDLE_TIMEOUT_MS);
+      }
+
+      function clearIdleTimer() {
+        if (idleTimer) {
+          clearTimeout(idleTimer);
+
+          idleTimer = null;
+        }
+      }
+
+      ["click", "touchstart", "keydown", "input"].forEach((evt) => {
+        document.getElementById("attendanceView").addEventListener(evt, () => {
+          if (!document.getElementById("attendanceView").classList.contains("hidden")) {
+            resetIdleTimer();
+          }
+        });
+      });
+
+      /**********************************************************
+       * SHIFT HELPERS
+       **********************************************************/
 
       function selectShift(shift) {
         const radio = document.querySelector(
@@ -2237,8 +2053,6 @@
 
       /**********************************************************
        * ATTENDANCE SYSTEM
-       *
-       * Existing functionality preserved.
        **********************************************************/
 
       let lat = "";
@@ -2255,11 +2069,11 @@
 
       let isSubmitting = false;
 
-      const DB_NAME = "k5tech-attendance-db";
+      const DB_NAME = "k5tech-toc-attendance-db";
 
       const DB_VERSION = 1;
 
-      const STORE_NAME = "pendingAttendance";
+      const STORE_NAME = "pendingTocAttendance";
 
       const gpsEl = document.getElementById("gps");
 
@@ -2275,10 +2089,16 @@
 
       const syncEl = document.getElementById("syncStatus");
 
+      const tocSyncEl = document.getElementById("tocSyncStatus");
+
       function setSyncStatus(text, color) {
         syncEl.innerText = text;
 
         syncEl.style.color = color || "#666";
+
+        tocSyncEl.innerText = text;
+
+        tocSyncEl.style.color = color || "#666";
       }
 
       /**********************************************************
@@ -2403,7 +2223,7 @@
 
       function createRecordId() {
         return (
-          "att_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8)
+          "toc_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8)
         );
       }
 
@@ -2465,8 +2285,8 @@
         return `${yyyy}-${mm}-${dd}_${hh}-${mi}`;
       }
 
-      function buildWatermarkLines(emp, site, timestampText) {
-        const line1 = `${emp} | ${timestampText} | ${site || "-"}`;
+      function buildWatermarkLines(name, site, timestampText) {
+        const line1 = `${name} | ${timestampText} | ${site || "-"}`;
 
         const line2 = getLocationText();
 
@@ -2518,17 +2338,9 @@
             refreshPendingStatus();
           },
 
-          // function (err) {
-          //   console.error("GPS error:", err);
-
-          //   gpsEl.innerHTML = "❌ GPS unavailable";
-
-          //   refreshPendingStatus();
-          // },
           function (err) {
             console.error("GPS error:", err);
 
-            // Provide specific feedback based on the error code
             if (err.code === 1) {
               gpsEl.innerHTML =
                 "❌ Location access denied. Please enable it in your browser/system settings.";
@@ -2644,17 +2456,7 @@
 
           canvas.height = video.videoHeight;
 
-          ctx.drawImage(
-            video,
-
-            0,
-
-            0,
-
-            canvas.width,
-
-            canvas.height,
-          );
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
           video.style.display = "none";
 
@@ -2694,10 +2496,18 @@
 
       /**********************************************************
        * CLEAR ATTENDANCE FORM
+       *
+       * keepSite: pass false the first time a user is shown the
+       * attendance screen (so the last-used Site Name prefill
+       * survives), true afterward (e.g. after a submission,
+       * where we deliberately keep the site for the next TOC
+       * employee at the same location).
        **********************************************************/
 
-      function clearAttendanceForm() {
-        document.getElementById("site").value = "";
+      function clearAttendanceForm(keepSite = true) {
+        if (!keepSite) {
+          document.getElementById("site").value = "";
+        }
 
         document.getElementById("notes").value = "";
 
@@ -2737,54 +2547,31 @@
 
         ctx.fillStyle = "rgba(0,0,0,0.65)";
 
-        ctx.fillRect(
-          10,
-
-          boxY,
-
-          canvas.width - 20,
-
-          boxHeight,
-        );
+        ctx.fillRect(10, boxY, canvas.width - 20, boxHeight);
 
         ctx.fillStyle = "white";
 
         ctx.font = "22px Arial";
 
-        ctx.fillText(
-          lines[0],
-
-          20,
-
-          boxY + 28,
-        );
+        ctx.fillText(lines[0], 20, boxY + 28);
 
         ctx.font = "18px Arial";
 
-        ctx.fillText(
-          lines[1],
-
-          20,
-
-          boxY + 58,
-        );
+        ctx.fillText(lines[1], 20, boxY + 58);
 
         return canvas.toDataURL("image/jpeg", 0.9);
       }
 
       /**********************************************************
        * BUILD PAYLOAD
-       *
-       * IMPORTANT:
-       * Employee ID now comes from the authenticated user.
        **********************************************************/
 
       function buildPayload(clockType) {
-        if (!currentUser) {
-          throw new Error("No authenticated user.");
+        if (!selectedUser) {
+          throw new Error("No selected TOC user.");
         }
 
-        const emp = currentUser.employeeId;
+        const username = selectedUser.username;
 
         const site = document.getElementById("site").value.trim();
 
@@ -2799,13 +2586,19 @@
         const clientTimestampFile = getClientTimestampFile();
 
         return {
+          action: "tocattendance",
+
+          operatorEmployeeId: operator ? operator.employeeId : "",
+
           recordId: createRecordId(),
 
           clientTimestampText: clientTimestampText,
 
           clientTimestampFile: clientTimestampFile,
 
-          employeeId: emp,
+          username: username,
+
+          pin: selectedUser.pin || "",
 
           shift: shift,
 
@@ -2824,27 +2617,17 @@
           image: addWatermark(
             canvas,
 
-            buildWatermarkLines(
-              emp,
-
-              site,
-
-              clientTimestampText,
-            ),
+            buildWatermarkLines(username, site, clientTimestampText),
           ),
         };
       }
 
       async function sendPayload(payload) {
-        const response = await fetch(
-          API_URL,
+        const response = await fetch(API_URL, {
+          method: "POST",
 
-          {
-            method: "POST",
-
-            body: JSON.stringify(payload),
-          },
-        );
+          body: JSON.stringify(payload),
+        });
 
         return response.json();
       }
@@ -2926,12 +2709,10 @@
 
         setSubmittingState(true);
 
-        if (!currentUser) {
+        if (!selectedUser) {
           setSubmittingState(false);
 
-          Swal.fire("Your session has expired. Please login again.");
-
-          showLoginView();
+          showSelectUserView();
 
           return;
         }
@@ -2958,11 +2739,13 @@
 
         const payload = buildPayload(clockType);
 
-        const action =
+        const siteToRemember = document.getElementById("site").value.trim();
+
+        const actionLabel =
           clockType === "Clock-In" ? "Clocking In" : "Clocking Out";
 
         Swal.fire({
-          title: currentUser.employeeId + " " + action + "...",
+          title: selectedUser.username + " " + actionLabel + "...",
 
           text: "Please wait",
 
@@ -2977,19 +2760,27 @@
           if (!navigator.onLine) {
             await savePendingSubmission(payload);
 
-            setSubmittingState(false);
+            if (siteToRemember) {
+              localStorage.setItem(LAST_SITE_KEY, siteToRemember);
+            }
 
-            clearAttendanceForm();
+            setSubmittingState(false);
 
             await refreshPendingStatus();
 
-            Swal.fire({
+            await Swal.fire({
               icon: "info",
 
               title: "Saved offline",
 
-              text: "Attendance was saved on this device and will sync automatically when internet returns.",
+              text: selectedUser.username + "'s attendance was saved on this device and will sync automatically when internet returns.",
+
+              timer: 2200,
+
+              showConfirmButton: false,
             });
+
+            showSelectUserView();
 
             return;
           }
@@ -3004,45 +2795,50 @@
             return;
           }
 
-          Swal.fire({
+          if (siteToRemember) {
+            localStorage.setItem(LAST_SITE_KEY, siteToRemember);
+          }
+
+          await Swal.fire({
             icon: "success",
 
-            title: currentUser.name + " Attendance Saved",
+            title: selectedUser.username + " — " + clockType + " Saved",
 
             timer: 1500,
 
             showConfirmButton: false,
           });
 
-          clearAttendanceForm();
-
           await refreshPendingStatus();
 
-          /*
-           * Refresh dashboard after successful attendance
-           * so the user immediately sees the new record.
-           */
-
-          await loadDashboard();
+          showSelectUserView();
         } catch (err) {
           console.error("Submit error:", err);
 
           try {
             await savePendingSubmission(payload);
 
-            setSubmittingState(false);
+            if (siteToRemember) {
+              localStorage.setItem(LAST_SITE_KEY, siteToRemember);
+            }
 
-            clearAttendanceForm();
+            setSubmittingState(false);
 
             await refreshPendingStatus();
 
-            Swal.fire({
+            await Swal.fire({
               icon: "warning",
 
               title: "Saved offline",
 
               text: "Upload failed, but attendance was saved on this device and will sync automatically later.",
+
+              timer: 2200,
+
+              showConfirmButton: false,
             });
+
+            showSelectUserView();
           } catch (dbErr) {
             setSubmittingState(false);
 
@@ -3078,10 +2874,6 @@
           .then((registration) => {
             console.log("[Service Worker] Registered successfully.");
 
-            /*
-             * Detect a new service worker version.
-             */
-
             registration.addEventListener("updatefound", () => {
               const newWorker = registration.installing;
 
@@ -3090,12 +2882,6 @@
               }
 
               newWorker.addEventListener("statechange", () => {
-                /*
-                 * A new version has been installed
-                 * while an older version is still controlling
-                 * the page.
-                 */
-
                 if (
                   newWorker.state === "installed" &&
                   navigator.serviceWorker.controller
@@ -3105,20 +2891,18 @@
 
                     title: "Update Available",
 
-                    text: "A new version of K5Tech Attendance is available.",
+                    text: "A new version of TOC Attendance is available.",
 
                     confirmButtonText: "Update Now",
 
                     allowOutsideClick: false,
-                  })
-
-                    .then((result) => {
-                      if (result.isConfirmed) {
-                        newWorker.postMessage({
-                          action: "skipWaiting",
-                        });
-                      }
-                    });
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      newWorker.postMessage({
+                        action: "skipWaiting",
+                      });
+                    }
+                  });
                 }
               });
             });
@@ -3128,11 +2912,6 @@
             console.error("[Service Worker] Registration failed:", error);
           });
 
-        /*
-         * When the new service worker takes control,
-         * reload the page so the new version is loaded.
-         */
-
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           window.location.reload();
         });
@@ -3140,32 +2919,23 @@
 
       /**********************************************************
        * APPLICATION INITIALIZATION
+       *
+       * The kiosk always starts at Select User — no session is
+       * ever restored, so a phone that gets closed/reopened (or
+       * left idle past the timeout) can never resume mid-flow
+       * under the wrong name.
        **********************************************************/
 
       async function initializeApp() {
-        const tocMessage = sessionStorage.getItem("k5techTocAccessMessage");
+        const authorized = await requireTocOperator();
 
-        if (tocMessage) {
-          sessionStorage.removeItem("k5techTocAccessMessage");
-
-          Swal.fire({
-            icon: "info",
-
-            text: tocMessage,
-          });
-        }
-
-        const user = loadSession();
-
-        if (user) {
-          showDashboardView();
-
-          await loadDashboard();
-
+        if (!authorized) {
           return;
         }
 
-        showLoginView();
+        showSelectUserView();
+
+        syncPendingAttendance(false);
       }
 
       initializeApp();
